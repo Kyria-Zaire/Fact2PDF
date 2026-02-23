@@ -117,6 +117,32 @@ export class ApiError extends Error {
 // Helpers internes
 // ============================================================
 
+const REQUEST_TIMEOUT_MS = 15_000;
+
+async function fetchWithTimeout(
+  url: string,
+  options: RequestInit & { timeout?: number } = {},
+): Promise<Response> {
+  const { timeout = REQUEST_TIMEOUT_MS, ...fetchOpts } = options;
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeout);
+  try {
+    const res = await fetch(url, { ...fetchOpts, signal: controller.signal });
+    clearTimeout(id);
+    return res;
+  } catch (err: unknown) {
+    clearTimeout(id);
+    if (err instanceof Error && err.name === 'AbortError') {
+      throw new ApiError(
+        'Délai dépassé. Vérifiez que le serveur tourne (http://VOTRE_IP:8088) et que l’IP dans src/constants/config.ts est correcte.',
+        0,
+        true,
+      );
+    }
+    throw err;
+  }
+}
+
 async function buildHeaders(isFormData = false): Promise<HeadersInit> {
   const token = await getToken();
   const headers: Record<string, string> = {
@@ -162,7 +188,7 @@ async function handleResponse<T>(res: Response): Promise<T> {
 
 async function get<T>(endpoint: string): Promise<T> {
   await checkConnectivity();
-  const res = await fetch(`${Config.API_BASE_URL}/${endpoint}`, {
+  const res = await fetchWithTimeout(`${Config.API_BASE_URL}/${endpoint}`, {
     method:  'GET',
     headers: await buildHeaders(),
   });
@@ -171,7 +197,7 @@ async function get<T>(endpoint: string): Promise<T> {
 
 async function post<T>(endpoint: string, body: unknown): Promise<T> {
   await checkConnectivity();
-  const res = await fetch(`${Config.API_BASE_URL}/${endpoint}`, {
+  const res = await fetchWithTimeout(`${Config.API_BASE_URL}/${endpoint}`, {
     method:  'POST',
     headers: await buildHeaders(),
     body:    JSON.stringify(body),
@@ -181,7 +207,7 @@ async function post<T>(endpoint: string, body: unknown): Promise<T> {
 
 async function put<T>(endpoint: string, body: unknown): Promise<T> {
   await checkConnectivity();
-  const res = await fetch(`${Config.API_BASE_URL}/${endpoint}`, {
+  const res = await fetchWithTimeout(`${Config.API_BASE_URL}/${endpoint}`, {
     method:  'PUT',
     headers: await buildHeaders(),
     body:    JSON.stringify(body),
@@ -191,7 +217,7 @@ async function put<T>(endpoint: string, body: unknown): Promise<T> {
 
 async function patch<T>(endpoint: string, body: unknown): Promise<T> {
   await checkConnectivity();
-  const res = await fetch(`${Config.API_BASE_URL}/${endpoint}`, {
+  const res = await fetchWithTimeout(`${Config.API_BASE_URL}/${endpoint}`, {
     method:  'PATCH',
     headers: await buildHeaders(),
     body:    JSON.stringify(body),
@@ -201,7 +227,7 @@ async function patch<T>(endpoint: string, body: unknown): Promise<T> {
 
 async function del<T>(endpoint: string): Promise<T> {
   await checkConnectivity();
-  const res = await fetch(`${Config.API_BASE_URL}/${endpoint}`, {
+  const res = await fetchWithTimeout(`${Config.API_BASE_URL}/${endpoint}`, {
     method:  'DELETE',
     headers: await buildHeaders(),
   });
@@ -214,8 +240,8 @@ async function del<T>(endpoint: string): Promise<T> {
  */
 async function uploadForm<T>(endpoint: string, formData: FormData): Promise<T> {
   await checkConnectivity();
-  const headers = await buildHeaders(true); // pas de Content-Type (boundary auto)
-  const res = await fetch(`${Config.API_BASE_URL}/${endpoint}`, {
+  const headers = await buildHeaders(true);
+  const res = await fetchWithTimeout(`${Config.API_BASE_URL}/${endpoint}`, {
     method:  'POST',
     headers,
     body:    formData,
@@ -243,7 +269,7 @@ export const ClientsApi = {
   create: (data: Record<string, string>) => post<ApiClient>('clients', data),
   createWithLogo: (data: Record<string, string>, imageUri: string) => {
     const fd = new FormData();
-    Object.entries(data).forEach(([k, v]) => v && fd.append(k, v));
+    Object.entries(data ?? {}).forEach(([k, v]) => v && fd.append(k, v));
     const filename = imageUri.split('/').pop() ?? 'logo.jpg';
     const ext      = filename.split('.').pop()?.toLowerCase() ?? 'jpg';
     const mimeMap: Record<string, string> = { jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp' };
@@ -253,7 +279,7 @@ export const ClientsApi = {
   update: (id: number, data: Record<string, string>) => put<ApiClient>(`clients/${id}`, data),
   updateWithLogo: (id: number, data: Record<string, string>, imageUri: string) => {
     const fd = new FormData();
-    Object.entries(data).forEach(([k, v]) => v && fd.append(k, v));
+    Object.entries(data ?? {}).forEach(([k, v]) => v && fd.append(k, v));
     const filename = imageUri.split('/').pop() ?? 'logo.jpg';
     const ext      = filename.split('.').pop()?.toLowerCase() ?? 'jpg';
     const mimeMap: Record<string, string> = { jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp' };

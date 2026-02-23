@@ -8,7 +8,7 @@
 import { useEffect, useRef, useState } from 'react';
 import NetInfo from '@react-native-community/netinfo';
 import { ClientsApi, InvoicesApi, ProjectsApi } from '@/services/api';
-import { getRealmInstance } from '@/store/realm';
+import { getRealmInstance, UPDATE_MODE_MODIFIED } from '@/store/realm';
 
 export function useOfflineSync() {
   const [syncing, setSyncing] = useState(false);
@@ -18,6 +18,7 @@ export function useOfflineSync() {
     setSyncing(true);
     try {
       const realm = await getRealmInstance();
+      if (!realm) return; // Expo Go : Realm non disponible
 
       // --- Sync clients ---
       const clients = await ClientsApi.list({ page: 1, limit: 500 });
@@ -36,7 +37,7 @@ export function useOfflineSync() {
             logo_path:   c.logo_path ?? undefined,
             notes:       c.notes ?? undefined,
             synced_at:   Date.now(),
-          }, Realm.UpdateMode.Modified);
+          }, UPDATE_MODE_MODIFIED);
         }
       });
 
@@ -57,7 +58,7 @@ export function useOfflineSync() {
             timeline_json: JSON.stringify(p.timeline ?? []),
             progress:      p.progress ?? 0,
             synced_at:     Date.now(),
-          }, Realm.UpdateMode.Modified);
+          }, UPDATE_MODE_MODIFIED);
         }
       });
     } catch {
@@ -74,11 +75,13 @@ export function useOfflineSync() {
     const unsubscribe = NetInfo.addEventListener(state => {
       if (state.isConnected && state.isInternetReachable) {
         syncAll();
-        unsubscribe(); // One-shot on first connection
+        if (typeof unsubscribe === 'function') unsubscribe();
       }
     });
 
-    return () => unsubscribe();
+    return () => {
+      if (typeof unsubscribe === 'function') unsubscribe();
+    };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

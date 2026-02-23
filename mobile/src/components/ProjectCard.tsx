@@ -28,9 +28,11 @@ interface Props {
 }
 
 function ProjectCard({ project, onPress }: Props) {
-  const statusColor    = Colors.projectStatus[project.status as keyof typeof Colors.projectStatus] ?? Colors.textMuted;
-  const priorityColor  = Colors.projectPriority[project.priority as keyof typeof Colors.projectPriority] ?? Colors.textMuted;
-  const isLate         = project.is_late ?? false;
+  const statusMap   = Colors.projectStatus ?? {};
+  const priorityMap = Colors.projectPriority ?? {};
+  const statusColor   = (project?.status && statusMap[project.status as keyof typeof statusMap]) ?? Colors.textMuted;
+  const priorityColor = (project?.priority && priorityMap[project.priority as keyof typeof priorityMap]) ?? Colors.textMuted;
+  const isLate        = project?.is_late ?? false;
 
   return (
     <TouchableOpacity
@@ -39,7 +41,7 @@ function ProjectCard({ project, onPress }: Props) {
       activeOpacity={onPress ? 0.75 : 1}
     >
       <View style={styles.header}>
-        <Text style={styles.name} numberOfLines={2}>{project.name}</Text>
+        <Text style={styles.name} numberOfLines={2}>{project?.name ?? '—'}</Text>
         {isLate && (
           <View style={styles.lateBadge}>
             <Text style={styles.lateBadgeText}>Retard</Text>
@@ -49,22 +51,22 @@ function ProjectCard({ project, onPress }: Props) {
 
       <View style={styles.badges}>
         <View style={[styles.badge, { backgroundColor: statusColor }]}>
-          <Text style={styles.badgeText}>{STATUS_LABELS[project.status] ?? project.status}</Text>
+          <Text style={styles.badgeText}>{STATUS_LABELS[project?.status ?? ''] ?? project?.status ?? '—'}</Text>
         </View>
         <View style={[styles.badge, { backgroundColor: priorityColor }]}>
-          <Text style={styles.badgeText}>{PRIORITY_LABELS[project.priority] ?? project.priority}</Text>
+          <Text style={styles.badgeText}>{PRIORITY_LABELS[project?.priority ?? ''] ?? project?.priority ?? '—'}</Text>
         </View>
       </View>
 
       {/* Progress bar */}
       <View style={styles.progressRow}>
         <View style={styles.progressTrack}>
-          <View style={[styles.progressFill, { width: `${project.progress ?? 0}%` as any, backgroundColor: statusColor }]} />
+          <View style={[styles.progressFill, { width: `${project?.progress ?? 0}%` as any, backgroundColor: statusColor }]} />
         </View>
-        <Text style={styles.progressText}>{project.progress ?? 0}%</Text>
+        <Text style={styles.progressText}>{project?.progress ?? 0}%</Text>
       </View>
 
-      {!!project.end_date && (
+      {!!project?.end_date && (
         <Text style={[styles.date, isLate && styles.dateLate]}>
           Échéance : {new Date(project.end_date).toLocaleDateString('fr-FR')}
         </Text>

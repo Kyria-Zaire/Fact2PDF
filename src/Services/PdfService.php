@@ -94,8 +94,8 @@ class PdfService
         $this->pdf->SetXY(110, 5);
         $this->pdf->Cell(85, 10, 'FACTURE', 0, 0, 'R');
 
-        // Numéro + date (sous la bande)
-        $this->pdf->SetTextColor(...$this->colorGray);
+        // Numéro + date (blanc sur fond bleu pour bonne lisibilité)
+        $this->pdf->SetTextColor(255, 255, 255);
         $this->pdf->SetFont('helvetica', '', 9);
         $this->pdf->SetXY(110, 16);
         $this->pdf->Cell(85, 5,

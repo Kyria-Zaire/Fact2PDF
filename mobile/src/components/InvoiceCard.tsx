@@ -14,19 +14,28 @@ const STATUS_LABELS: Record<string, string> = {
   overdue: 'En retard',
 };
 
+/** Couleurs par statut : fond + texte pour un badge lisible */
+function getStatusStyle(status: string): { badge: object; text: object } {
+  const map: Record<string, { bg: string; text: string }> = {
+    draft:   { bg: '#e9ecef', text: '#495057' },
+    pending: { bg: '#fff3cd', text: '#856404' },
+    paid:    { bg: '#d1e7dd', text: '#0f5132' },
+    overdue: { bg: '#f8d7da', text: '#842029' },
+  };
+  const s = map[status] ?? { bg: Colors.gray, text: Colors.white };
+  return {
+    badge: { backgroundColor: s.bg },
+    text:  { color: s.text, fontWeight: '600' as const },
+  };
+}
+
 interface Props {
   invoice: ApiInvoice;
   onPress?: (invoice: ApiInvoice) => void;
 }
 
 function InvoiceCard({ invoice, onPress }: Props) {
-  const statusColor = {
-    draft:   Colors.invoiceDraft,
-    pending: Colors.invoicePending,
-    paid:    Colors.invoicePaid,
-    overdue: Colors.invoiceOverdue,
-  }[invoice.status] ?? Colors.textMuted;
-
+  const statusStyle = getStatusStyle(invoice.status);
   const isOverdue = invoice.status === 'overdue';
 
   return (
@@ -49,8 +58,8 @@ function InvoiceCard({ invoice, onPress }: Props) {
             style: 'currency', currency: 'EUR',
           })}
         </Text>
-        <View style={[styles.badge, { backgroundColor: statusColor }]}>
-          <Text style={styles.badgeText}>
+        <View style={[styles.badge, statusStyle.badge]}>
+          <Text style={[styles.badgeText, statusStyle.text]}>
             {STATUS_LABELS[invoice.status] ?? invoice.status}
           </Text>
         </View>
@@ -118,12 +127,10 @@ const styles = StyleSheet.create({
   },
   badge: {
     borderRadius: 12,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
   },
   badgeText: {
-    fontSize: 11,
-    color: Colors.white,
-    fontWeight: '600',
+    fontSize: 12,
   },
 });

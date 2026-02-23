@@ -9,8 +9,8 @@ const ENV = Constants.expoConfig?.extra?.APP_ENV ?? 'development';
 
 const configs = {
   development: {
-    /** Remplacer par l'IP locale de votre machine Docker (pas localhost = iOS simulator) */
-    API_BASE_URL: 'http://192.168.1.100:8080/api/v1',
+    /** IP de ton PC sur le réseau Wi‑Fi (ipconfig → Adresse IPv4). Port 8088 = site web. */
+    API_BASE_URL: 'http://192.168.1.55:8088/api/v1',
     APP_NAME:     'Fact2PDF [DEV]',
   },
   staging: {
@@ -24,6 +24,18 @@ const configs = {
 } as const;
 
 export const Config = configs[ENV as keyof typeof configs] ?? configs.development;
+
+/** URL du site web (sans /api/v1) pour charger les assets : logos, etc. */
+export const SITE_BASE_URL = Config.API_BASE_URL.replace(/\/api\/v1\/?$/, '');
+
+/** Retourne l’URL complète d’un asset (ex. logo_path /storage/uploads/logos/xxx.webp). */
+export function getAssetUrl(path: string | null | undefined): string | null {
+  if (!path || !path.trim()) return null;
+  if (path.startsWith('http://') || path.startsWith('https://')) return path;
+  const base = SITE_BASE_URL.replace(/\/$/, '');
+  const p = path.startsWith('/') ? path : `/${path}`;
+  return `${base}${p}`;
+}
 
 /** Clé AsyncStorage / SecureStore pour le JWT */
 export const TOKEN_KEY     = 'f2p_jwt_token';

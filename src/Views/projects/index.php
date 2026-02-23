@@ -19,10 +19,10 @@ $statusLabels = \App\Models\Project::STATUS_LABELS;
 ?>
 
 <!-- ---- En-tête ---- -->
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div class="flex-grow-1 min-w-0">
         <h1 class="h4 mb-0">Projets</h1>
-        <div class="text-muted small mt-1">
+        <div class="text-muted small mt-1 stats-line">
             <?= (int)($stats['total'] ?? 0) ?> total —
             <span class="text-primary"><?= (int)($stats['in_progress'] ?? 0) ?> en cours</span> —
             <span class="text-success"><?= (int)($stats['done'] ?? 0) ?> terminés</span>
@@ -31,7 +31,7 @@ $statusLabels = \App\Models\Project::STATUS_LABELS;
             <?php endif; ?>
         </div>
     </div>
-    <div class="d-flex gap-2">
+    <div class="page-toolbar d-flex gap-2 flex-wrap flex-grow-1 flex-lg-grow-0">
         <!-- Filtre statut -->
         <select id="filterProjectStatus" class="form-select form-select-sm" style="width:150px">
             <option value="">Tous</option>
@@ -61,16 +61,16 @@ $statusLabels = \App\Models\Project::STATUS_LABELS;
      ==================================================== -->
 <div id="viewList">
     <div class="card">
-        <div class="table-responsive">
+        <div class="table-responsive table-projects">
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">
                     <tr>
                         <th>Projet</th>
-                        <th>Client</th>
-                        <th>Priorité</th>
+                        <th class="col-hide-xs">Client</th>
+                        <th class="col-hide-sm">Priorité</th>
                         <th>Statut</th>
-                        <th>Progression</th>
-                        <th>Échéance</th>
+                        <th class="col-hide-md">Progression</th>
+                        <th class="col-hide-xs">Échéance</th>
                         <th></th>
                     </tr>
                 </thead>
@@ -90,8 +90,11 @@ $statusLabels = \App\Models\Project::STATUS_LABELS;
                             <?php if (!empty($p['invoice_number'])): ?>
                             <div class="text-muted x-small"><i class="bi bi-receipt"></i> <?= e($p['invoice_number']) ?></div>
                             <?php endif; ?>
+                            <?php if (!empty($p['client_name'])): ?>
+                            <div class="text-muted x-small d-block d-sm-none mt-0"><?= e($p['client_name']) ?></div>
+                            <?php endif; ?>
                         </td>
-                        <td>
+                        <td class="col-hide-xs">
                             <div class="d-flex align-items-center gap-2">
                                 <?php if (!empty($p['client_logo'])): ?>
                                 <img src="<?= e($p['client_logo']) ?>" alt="" style="width:24px;height:24px;object-fit:contain">
@@ -99,7 +102,7 @@ $statusLabels = \App\Models\Project::STATUS_LABELS;
                                 <?= e($p['client_name']) ?>
                             </div>
                         </td>
-                        <td>
+                        <td class="col-hide-sm">
                             <span class="badge text-bg-<?= $priorityColors[$p['priority']] ?? 'light' ?>">
                                 <?= e(\App\Models\Project::PRIORITY_LABELS[$p['priority']] ?? $p['priority']) ?>
                             </span>
@@ -109,7 +112,7 @@ $statusLabels = \App\Models\Project::STATUS_LABELS;
                                 <?= e($statusLabels[$p['status']] ?? $p['status']) ?>
                             </span>
                         </td>
-                        <td style="min-width:120px">
+                        <td class="col-hide-md" style="min-width:120px">
                             <div class="d-flex align-items-center gap-2">
                                 <div class="progress flex-grow-1" style="height:6px">
                                     <div class="progress-bar bg-<?= $statColors[$p['status']] ?? 'secondary' ?>"
@@ -118,7 +121,7 @@ $statusLabels = \App\Models\Project::STATUS_LABELS;
                                 <small class="text-muted"><?= $p['progress'] ?>%</small>
                             </div>
                         </td>
-                        <td class="text-muted small <?= $isLate ? 'text-danger fw-semibold' : '' ?>">
+                        <td class="text-muted small col-hide-xs <?= $isLate ? 'text-danger fw-semibold' : '' ?>">
                             <?= !empty($p['end_date']) ? formatDate($p['end_date']) : '—' ?>
                         </td>
                         <td>
@@ -153,7 +156,7 @@ $statusLabels = \App\Models\Project::STATUS_LABELS;
      VUE KANBAN (colonnes par statut, drag & drop via JS)
      ==================================================== -->
 <div id="viewKanban" class="d-none">
-    <div class="d-flex gap-3 overflow-auto pb-2" style="min-height:60vh">
+    <div class="kanban-board d-flex gap-3 overflow-auto pb-2" style="min-height:60vh">
         <?php foreach ($statusLabels as $colStatus => $colLabel): ?>
         <?php if ($colStatus === 'archived') continue; // Archivés hors Kanban ?>
         <div class="kanban-col flex-shrink-0" style="width:280px"

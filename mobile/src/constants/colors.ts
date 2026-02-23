@@ -12,6 +12,9 @@ export const Colors = {
   border:     '#dee2e6',
   white:      '#ffffff',
   black:      '#000000',
+  textMuted:  '#6c757d',
+  textDark:   '#212529',
+  background: '#f8f9fa',
 
   // Statuts factures
   statusDraft:   '#6c757d',
@@ -19,14 +22,27 @@ export const Colors = {
   statusPaid:    '#198754',
   statusOverdue: '#dc3545',
 
-  // Statuts projets
+  // Statuts projets (objets pour ProjectCard)
   projectTodo:       '#6c757d',
   projectInProgress: '#0d6efd',
   projectReview:     '#ffc107',
   projectDone:       '#198754',
   projectArchived:   '#adb5bd',
+  projectStatus:     {
+    todo:        '#6c757d',
+    in_progress: '#0d6efd',
+    review:      '#ffc107',
+    done:        '#198754',
+    archived:    '#adb5bd',
+  } as const,
+  projectPriority:   {
+    low:      '#adb5bd',
+    medium:   '#0dcaf0',
+    high:    '#ffc107',
+    critical: '#dc3545',
+  } as const,
 
-  // Priorités
+  // Priorités (alias)
   priorityLow:      '#adb5bd',
   priorityMedium:   '#0dcaf0',
   priorityHigh:     '#ffc107',

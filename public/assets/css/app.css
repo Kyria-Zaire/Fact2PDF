@@ -1,22 +1,71 @@
 /* ============================================================
    Fact2PDF — Styles personnalisés (complète Bootstrap 5)
+   Responsive: mobile-first, breakpoints Bootstrap (576, 768, 992, 1200px)
    ============================================================ */
 
 /* ---- Variables ---- */
 :root {
     --f2p-primary:   #0d6efd;
     --f2p-sidebar-w: 250px;
+    --f2p-touch-min: 44px;  /* zone tactile minimale (accessibilité) */
+    --f2p-safe-top: env(safe-area-inset-top, 0);
+    --f2p-safe-bottom: env(safe-area-inset-bottom, 0);
 }
 
 /* ---- Layout général ---- */
+html {
+    scroll-behavior: smooth;
+}
 body {
     background-color: #f8f9fa;
     font-family: 'Segoe UI', system-ui, sans-serif;
+    padding-bottom: var(--f2p-safe-bottom);
 }
 
 /* ---- Navbar ---- */
+.navbar {
+    padding-top: calc(0.5rem + var(--f2p-safe-top));
+}
 .navbar-brand {
     letter-spacing: 0.05em;
+    max-width: 55vw;
+}
+@media (min-width: 576px) {
+    .navbar-brand { max-width: none; }
+}
+.navbar-toggler {
+    min-width: var(--f2p-touch-min);
+    min-height: var(--f2p-touch-min);
+}
+.navbar .nav-link {
+    min-height: var(--f2p-touch-min);
+    display: inline-flex;
+    align-items: center;
+}
+@media (min-width: 992px) {
+    .navbar .nav-link { min-height: auto; }
+}
+
+/* Séparateur visuel entre nav links et user info sur mobile */
+.navbar-user-section {
+    border-top: 1px solid rgba(255,255,255,.15);
+    padding-top: .5rem;
+    margin-top: .25rem;
+}
+.navbar-user-section .nav-link,
+.navbar-user-section .btn {
+    min-height: var(--f2p-touch-min);
+    display: inline-flex;
+    align-items: center;
+}
+@media (min-width: 992px) {
+    .navbar-user-section {
+        border-top: none;
+        padding-top: 0;
+        margin-top: 0;
+    }
+    .navbar-user-section .nav-link,
+    .navbar-user-section .btn { min-height: auto; }
 }
 
 /* ---- Cards ---- */
@@ -40,6 +89,48 @@ body {
     color: #6c757d;
     border-top: none;
 }
+.table-responsive {
+    -webkit-overflow-scrolling: touch;
+    margin-left: -0.75rem;
+    margin-right: -0.75rem;
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+}
+@media (min-width: 576px) {
+    .table-responsive {
+        margin-left: 0;
+        margin-right: 0;
+        padding-left: 0;
+        padding-right: 0;
+    }
+}
+
+/* Sur mobile : cacher colonnes secondaires des tables */
+@media (max-width: 575px) {
+    .table .col-hide-xs { display: none !important; }
+}
+@media (max-width: 767px) {
+    .table .col-hide-sm { display: none !important; }
+}
+@media (max-width: 991px) {
+    .table .col-hide-md { display: none !important; }
+}
+
+/* Zone tactile minimale pour boutons dans les tables */
+.table .btn-group .btn,
+.table .btn {
+    min-height: 36px;
+    min-width: 36px;
+    padding: 0.35rem;
+}
+@media (max-width: 575px) {
+    .table .btn-group .btn,
+    .table .btn {
+        min-width: 34px;
+        min-height: 34px;
+        padding: 0.25rem;
+    }
+}
 
 /* ---- Badges statut facture ---- */
 .badge.status-draft   { background-color: #6c757d; }
@@ -54,15 +145,50 @@ body {
     object-fit: contain;
     border-radius: 4px;
     background: #f0f0f0;
+    flex-shrink: 0;
+}
+
+/* ---- Bouton xs (plus petit que btn-sm) ---- */
+.btn-xs {
+    padding: .15rem .4rem;
+    font-size: .78rem;
+    border-radius: .25rem;
+}
+
+/* ---- Modals : pleine largeur sur mobile ---- */
+@media (max-width: 575px) {
+    .modal-dialog {
+        margin: 0.5rem;
+        max-width: calc(100% - 1rem);
+    }
+    .modal-fullscreen-sm-down {
+        max-width: 100%;
+        margin: 0;
+        height: 100%;
+    }
+    .modal-fullscreen-sm-down .modal-content {
+        border-radius: 0;
+        min-height: 100vh;
+        min-height: 100dvh;
+    }
+}
+@media (max-width: 767px) {
+    .modal-dialog.modal-lg {
+        max-width: calc(100% - 1rem);
+        margin: 0.5rem auto;
+    }
 }
 
 /* ---- Invoice preview ---- */
 .invoice-preview {
     background: #fff;
-    padding: 2rem;
+    padding: 1rem;
     box-shadow: 0 2px 8px rgba(0,0,0,.1);
     max-width: 800px;
     margin: 0 auto;
+}
+@media (min-width: 768px) {
+    .invoice-preview { padding: 2rem; }
 }
 
 /* ---- Forms ---- */
@@ -71,10 +197,266 @@ body {
     font-size: .9rem;
 }
 
-/* ---- Responsive ---- */
-@media (max-width: 768px) {
-    main.container {
-        padding-left: 1rem;
-        padding-right: 1rem;
+/* ---- Page header (titre + actions) ---- */
+.page-header,
+.d-flex.justify-content-between.align-items-center.mb-4 {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: .75rem;
+    margin-bottom: 1.25rem;
+}
+@media (max-width: 575px) {
+    .page-header,
+    .d-flex.justify-content-between.align-items-center.mb-4 {
+        flex-direction: column;
+        align-items: stretch;
+        margin-bottom: 1rem;
     }
+    .page-header h1,
+    .d-flex.justify-content-between.align-items-center.mb-4 h1 {
+        margin-bottom: 0.25rem;
+    }
+}
+.page-header-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+    align-items: center;
+}
+@media (max-width: 575px) {
+    .page-header-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+    .page-header-actions .btn,
+    .page-header-actions .form-select,
+    .page-header-actions .input-group,
+    .page-header-actions .dropdown {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+}
+
+/* ---- Filtre / toolbar ---- */
+.toolbar-filter {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+    align-items: center;
+}
+
+.toolbar-filter .form-select,
+.toolbar-filter .form-control,
+.toolbar-filter .input-group {
+    min-width: 120px;
+    width: auto;
+    flex: 1 1 140px;
+    max-width: 220px;
+}
+
+@media (max-width: 575px) {
+    .toolbar-filter .form-select,
+    .toolbar-filter .form-control,
+    .toolbar-filter .input-group {
+        flex: 1 1 100%;
+        max-width: 100%;
+    }
+}
+
+/* ---- Kanban ---- */
+.kanban-col {
+    min-width: 260px;
+    width: 280px;
+    flex-shrink: 0;
+}
+
+/* Petit écran : colonnes en vertical, plus de carrousel horizontal */
+@media (max-width: 991px) {
+    .kanban-board {
+        flex-direction: column;
+        overflow-x: visible;
+        overflow-y: visible;
+        min-height: 0;
+        gap: 1rem;
+    }
+    .kanban-board .kanban-col {
+        width: 100%;
+        min-width: 0;
+        flex-shrink: 0;
+    }
+}
+
+@media (max-width: 575px) {
+    .kanban-board {
+        padding-left: 0;
+        padding-right: 0;
+        gap: 0.75rem;
+    }
+}
+
+.kanban-cards {
+    min-height: 200px;
+}
+
+/* ---- Page Projets / Factures : toolbar responsive ---- */
+.page-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+}
+@media (max-width: 575px) {
+    .page-toolbar {
+        width: 100%;
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .page-toolbar .form-select {
+        width: 100% !important;
+        max-width: 100%;
+    }
+    .page-toolbar .btn-group {
+        width: 100%;
+        justify-content: center;
+    }
+    .page-toolbar .dropdown {
+        width: 100%;
+    }
+    .page-toolbar .dropdown .btn {
+        width: 100%;
+        justify-content: center;
+    }
+    .page-toolbar > .btn {
+        width: 100%;
+    }
+}
+@media (min-width: 576px) and (max-width: 767px) {
+    .page-toolbar {
+        flex-wrap: wrap;
+    }
+    .page-toolbar .form-select { min-width: 120px; }
+}
+
+/* Stats sous le titre (Projets) : wrap propre sur petit écran */
+@media (max-width: 575px) {
+    .stats-line {
+        word-break: break-word;
+        line-height: 1.4;
+    }
+}
+
+/* ---- Tables Projets / Factures : actions compactes sur mobile ---- */
+@media (max-width: 575px) {
+    .table-invoices .table td:first-child code,
+    .table-projects .table td:first-child .fw-semibold {
+        word-break: break-all;
+    }
+    .table .btn-group {
+        flex-wrap: nowrap;
+    }
+    .table .btn-group .btn {
+        padding: 0.3rem;
+        min-width: 32px;
+    }
+}
+@media (max-width: 380px) {
+    .table .btn-group .btn {
+        min-width: 28px;
+        padding: 0.2rem;
+    }
+    .table .btn-group .btn i { font-size: 0.9rem; }
+}
+
+/* ---- PDF Offcanvas ---- */
+#pdfPreviewCanvas {
+    width: min(55%, 900px);
+}
+@media (max-width: 991px) {
+    #pdfPreviewCanvas { width: 90vw; max-width: 100%; }
+}
+@media (max-width: 575px) {
+    #pdfPreviewCanvas {
+        width: 100%;
+        max-width: 100%;
+        border-radius: 0;
+    }
+    #pdfPreviewCanvas .offcanvas-body {
+        padding: 0;
+    }
+}
+
+/* ---- Footer ---- */
+footer.bg-light {
+    padding-bottom: calc(0.75rem + var(--f2p-safe-bottom));
+}
+
+/* ---- Clients grid ---- */
+.client-search-group {
+    width: 100%;
+    max-width: 280px;
+}
+@media (max-width: 575px) {
+    .client-search-group { max-width: 100%; }
+}
+
+/* ---- KPI Cards ---- */
+@media (max-width: 575px) {
+    .kpi-card .fs-3 { font-size: 1.4rem !important; }
+    .kpi-card .bi.fs-1 { font-size: 1.5rem !important; }
+}
+
+/* ---- Action button groups dans les tables ---- */
+@media (max-width: 767px) {
+    .table .btn-group { flex-wrap: wrap; }
+}
+
+/* ---- Responsive padding main ---- */
+@media (max-width: 767px) {
+    main.container {
+        padding-left: .875rem;
+        padding-right: .875rem;
+    }
+}
+
+@media (max-width: 575px) {
+    main.container {
+        padding-left: .75rem;
+        padding-right: .75rem;
+    }
+
+    /* Réduire la taille de police des tables sur très petit écran */
+    .table { font-size: .82rem; }
+    .card-header { font-size: .9rem; }
+}
+
+/* ---- Overflow scroll pour tables denses ---- */
+.table-scroll-sm {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* ---- Progress bar dans les listes ---- */
+.progress-xs { height: 4px; }
+.progress-sm { height: 6px; }
+
+/* ---- Text helper ---- */
+.x-small { font-size: .72rem; }
+
+/* ---- Boutons : zones tactiles sur mobile ---- */
+@media (max-width: 767px) {
+    .btn-sm {
+        min-height: 38px;
+        padding: 0.35rem 0.65rem;
+    }
+    .btn:not(.btn-sm):not(.btn-xs) {
+        min-height: var(--f2p-touch-min);
+    }
+}
+
+/* ---- Utilitaires responsive ---- */
+@media (max-width: 575px) {
+    .w-100-xs { width: 100% !important; }
+    .flex-column-xs { flex-direction: column !important; }
 }

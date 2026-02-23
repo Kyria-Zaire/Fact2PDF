@@ -59,8 +59,7 @@ class SpreadsheetService
         $headers = ['ID', 'Numéro', 'Client', 'Date émission', 'Échéance', 'Statut', 'Sous-total HT', 'TVA', 'Total TTC'];
 
         foreach ($headers as $col => $label) {
-            $cell = $sheet->getCellByColumnAndRow($col + 1, 1);
-            $cell->setValue($label);
+            $sheet->getCell([$col + 1, 1])->setValue($label);
         }
     }
 
@@ -76,23 +75,23 @@ class SpreadsheetService
         foreach ($invoices as $row => $inv) {
             $r = $row + 2; // Ligne 1 = en-tête
 
-            $sheet->getCellByColumnAndRow(1, $r)->setValue((int) $inv['id']);
-            $sheet->getCellByColumnAndRow(2, $r)->setValueExplicit($inv['number'], DataType::TYPE_STRING);
-            $sheet->getCellByColumnAndRow(3, $r)->setValue($inv['client_name']);
-            $sheet->getCellByColumnAndRow(4, $r)->setValue($inv['issue_date']);
-            $sheet->getCellByColumnAndRow(5, $r)->setValue($inv['due_date']);
-            $sheet->getCellByColumnAndRow(6, $r)->setValue($statuses[$inv['status']] ?? $inv['status']);
-            $sheet->getCellByColumnAndRow(7, $r)->setValue((float) $inv['subtotal']);
-            $sheet->getCellByColumnAndRow(8, $r)->setValue((float) $inv['tax_amount']);
-            $sheet->getCellByColumnAndRow(9, $r)->setValue((float) $inv['total']);
+            $sheet->getCell([1, $r])->setValue((int) $inv['id']);
+            $sheet->getCell([2, $r])->setValueExplicit($inv['number'], DataType::TYPE_STRING);
+            $sheet->getCell([3, $r])->setValue($inv['client_name']);
+            $sheet->getCell([4, $r])->setValue($inv['issue_date']);
+            $sheet->getCell([5, $r])->setValue($inv['due_date']);
+            $sheet->getCell([6, $r])->setValue($statuses[$inv['status']] ?? $inv['status']);
+            $sheet->getCell([7, $r])->setValue((float) $inv['subtotal']);
+            $sheet->getCell([8, $r])->setValue((float) $inv['tax_amount']);
+            $sheet->getCell([9, $r])->setValue((float) $inv['total']);
         }
 
         // Ligne totaux
         $lastRow = count($invoices) + 2;
-        $sheet->getCellByColumnAndRow(3, $lastRow)->setValue('TOTAL');
-        $sheet->getCellByColumnAndRow(7, $lastRow)->setValue("=SUM(G2:G" . ($lastRow - 1) . ")");
-        $sheet->getCellByColumnAndRow(8, $lastRow)->setValue("=SUM(H2:H" . ($lastRow - 1) . ")");
-        $sheet->getCellByColumnAndRow(9, $lastRow)->setValue("=SUM(I2:I" . ($lastRow - 1) . ")");
+        $sheet->getCell([3, $lastRow])->setValue('TOTAL');
+        $sheet->getCell([7, $lastRow])->setValue("=SUM(G2:G" . ($lastRow - 1) . ")");
+        $sheet->getCell([8, $lastRow])->setValue("=SUM(H2:H" . ($lastRow - 1) . ")");
+        $sheet->getCell([9, $lastRow])->setValue("=SUM(I2:I" . ($lastRow - 1) . ")");
     }
 
     private function applyStyles(\PhpOffice\PhpSpreadsheet\Worksheet\Worksheet $sheet, int $rowCount): void

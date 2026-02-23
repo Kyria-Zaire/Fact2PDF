@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { ApiClient } from '@/services/api';
 import { Colors }    from '@/constants/colors';
+import { getAssetUrl } from '@/constants/config';
 
 interface Props {
   client:  ApiClient;
@@ -41,7 +42,7 @@ function ClientCard({ client, onPress }: Props) {
       {/* Logo or initial avatar */}
       {client.logo_path ? (
         <Image
-          source={{ uri: client.logo_path }}
+          source={{ uri: getAssetUrl(client.logo_path) ?? '' }}
           style={styles.logo}
           resizeMode="contain"
         />

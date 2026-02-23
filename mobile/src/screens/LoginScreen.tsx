@@ -12,18 +12,19 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 
-import { AuthApi }     from '@/services/api';
+import { AuthApi } from '@/services/api';
 import { saveToken, saveUser } from '@/services/auth';
-import { Colors }      from '@/constants/colors';
+import { useAuth } from '@/contexts/AuthContext';
+import { Colors } from '@/constants/colors';
 import { AuthStackParamList } from '@/navigation';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Login'>;
 
-export default function LoginScreen({ navigation }: Props) {
+export default function LoginScreen(_props: Props) {
+  const { refreshAuth } = useAuth();
   const [email,    setEmail]    = useState('');
   const [password, setPassword] = useState('');
   const [loading,  setLoading]  = useState(false);
@@ -39,20 +40,16 @@ export default function LoginScreen({ navigation }: Props) {
     try {
       const res = await AuthApi.login(email.trim(), password);
       await saveToken(res.token);
-      await saveUser(res.user);
-      // Navigator re-renders via RootNavigator isAuthenticated check
-      // For immediate navigation we use reset — but RootNavigator handles it.
-      // Force re-mount by calling navigation.replace if needed, but because
-      // RootNavigator uses state, just call the onLogin callback below.
-      // We trigger it by re-checking auth state from parent.
-      // The simplest approach: restart the app state via DevSettings or
-      // navigate directly. Since RootNavigator checks auth on mount only,
-      // we need a refresh signal — handled via onAuthChange prop pattern.
-      // For now, navigate directly to AppStack via a workaround using
-      // the navigation reset:
-      navigation.getParent()?.reset?.({ index: 0, routes: [{ name: 'Clients' as never }] });
-    } catch (err: any) {
-      setError(err?.message ?? 'Erreur de connexion.');
+      await saveUser({
+        id:       res.user.id,
+        username: res.user.username,
+        email:    res.user.email,
+        role:     res.user.role as 'admin' | 'user' | 'viewer',
+      });
+      await refreshAuth();
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Erreur de connexion.';
+      setError(message);
     } finally {
       setLoading(false);
     }

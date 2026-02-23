@@ -122,7 +122,7 @@ function initCharts() {
             data: {
                 labels:   ca.labels,
                 datasets: [{ label: 'CA (€)', data: ca.data,
-                    backgroundColor: 'rgba(13,110,253,.7)', borderRadius: 4, borderWidth: 1 }],
+                    backgroundColor: 'rgba(25,135,84,.7)', borderRadius: 4, borderWidth: 1 }],
             },
             options: {
                 responsive: true,
@@ -133,23 +133,7 @@ function initCharts() {
             },
         });
 
-        // ---- Doughnut statuts ----
-        const ctxSt = document.getElementById('chartStatus');
-        if (ctxSt && status.labels.length) {
-            const pal = { draft:'#6c757d', pending:'#ffc107', paid:'#198754', overdue:'#dc3545' };
-            new Chart(ctxSt, {
-                type: 'doughnut',
-                data: {
-                    labels:   status.labels,
-                    datasets: [{ data: status.data,
-                        backgroundColor: status.labels.map(l => pal[l] || '#adb5bd'), borderWidth: 2 }],
-                },
-                options: {
-                    responsive: true, cutout: '65%',
-                    plugins: { legend: { position: 'bottom', labels: { padding: 12, font: { size: 11 } } } },
-                },
-            });
-        }
+        // Statuts factures : créé par le script inline dans dashboard/index.php (couleurs garanties)
     };
 
     tryInit();

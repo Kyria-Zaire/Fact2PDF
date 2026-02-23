@@ -4,7 +4,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { InvoicesApi, ApiInvoice } from '@/services/api';
-import { getRealmInstance }        from '@/store/realm';
+import { getRealmInstance, UPDATE_MODE_MODIFIED } from '@/store/realm';
 
 export function useInvoices(clientId: number) {
   const [invoices,   setInvoices]   = useState<ApiInvoice[]>([]);
@@ -15,6 +15,7 @@ export function useInvoices(clientId: number) {
   async function loadFromCache() {
     try {
       const realm  = await getRealmInstance();
+      if (!realm) return;
       const cached = realm.objects('Invoice')
         .filtered('client_id == $0', clientId)
         .sorted('issue_date', true);
@@ -42,31 +43,34 @@ export function useInvoices(clientId: number) {
   async function fetchFromApi(isRefresh = false) {
     try {
       const data = await InvoicesApi.byClient(clientId);
-      const items: ApiInvoice[] = Array.isArray(data) ? data : (data as any).data ?? data;
+      const raw = Array.isArray(data) ? data : (data as any)?.data ?? data;
+      const items: ApiInvoice[] = Array.isArray(raw) ? raw : [];
 
-      setInvoices(isRefresh ? items : items);
+      setInvoices(items);
       setError(null);
 
       // Cache upsert
       const realm = await getRealmInstance();
-      realm.write(() => {
-        for (const inv of items) {
-          realm.create('Invoice', {
-            _id:        inv.id,
-            client_id:  inv.client_id,
-            number:     inv.number,
-            status:     inv.status,
-            issue_date: inv.issue_date,
-            due_date:   inv.due_date,
-            subtotal:   inv.subtotal,
-            tax_rate:   inv.tax_rate,
-            tax_amount: inv.tax_amount,
-            total:      inv.total,
-            notes:      inv.notes ?? undefined,
-            synced_at:  Date.now(),
-          }, Realm.UpdateMode.Modified);
-        }
-      });
+      if (realm) {
+        realm.write(() => {
+          for (const inv of items) {
+            realm.create('Invoice', {
+              _id:        inv.id,
+              client_id:  inv.client_id,
+              number:     inv.number,
+              status:     inv.status,
+              issue_date: inv.issue_date,
+              due_date:   inv.due_date,
+              subtotal:   inv.subtotal,
+              tax_rate:   inv.tax_rate,
+              tax_amount: inv.tax_amount,
+              total:      inv.total,
+              notes:      inv.notes ?? undefined,
+              synced_at:  Date.now(),
+            }, UPDATE_MODE_MODIFIED);
+          }
+        });
+      }
     } catch (err: any) {
       setError(err?.message ?? 'Erreur réseau');
     } finally {

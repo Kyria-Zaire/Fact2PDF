@@ -6,13 +6,13 @@
  *   AppStack   : Clients, ClientDetail, AddClient, EditClient, Projects
  */
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { NavigationContainer }     from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-import { isAuthenticated } from '@/services/auth';
-import { Colors }          from '@/constants/colors';
+import { useAuth } from '@/contexts/AuthContext';
+import { Colors }  from '@/constants/colors';
 
 // Screens
 import LoginScreen        from '@/screens/LoginScreen';
@@ -90,15 +90,7 @@ function AppNavigator() {
 
 // ---- Root Navigator ----
 export default function RootNavigator() {
-  const [loading,  setLoading]  = useState(true);
-  const [authed,   setAuthed]   = useState(false);
-
-  useEffect(() => {
-    isAuthenticated().then(ok => {
-      setAuthed(ok);
-      setLoading(false);
-    });
-  }, []);
+  const { isAuthenticated: authed, isLoading: loading } = useAuth();
 
   if (loading) {
     return (

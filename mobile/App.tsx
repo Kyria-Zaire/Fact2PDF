@@ -11,11 +11,12 @@ import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import RootNavigator from '@/navigation';
+import { AuthProvider } from '@/contexts/AuthContext';
 import { registerForPushNotifications, startNotificationPolling } from '@/services/notifications';
 import { useOfflineSync } from '@/hooks/useOfflineSync';
 
 function AppInner() {
-  useOfflineSync(); // background Realm sync on first connection
+  useOfflineSync();
 
   useEffect(() => {
     // Push notification registration (non-blocking)
@@ -35,7 +36,9 @@ function AppInner() {
 export default function App() {
   return (
     <SafeAreaProvider>
-      <AppInner />
+      <AuthProvider>
+        <AppInner />
+      </AuthProvider>
     </SafeAreaProvider>
   );
 }

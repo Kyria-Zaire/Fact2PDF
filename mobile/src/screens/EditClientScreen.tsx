@@ -20,6 +20,7 @@ import * as ImagePicker            from 'expo-image-picker';
 
 import { ClientsApi, ApiClient } from '@/services/api';
 import { Colors }                from '@/constants/colors';
+import { getAssetUrl }           from '@/constants/config';
 import { AppStackParamList }     from '@/navigation';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'EditClient'>;
@@ -88,7 +89,7 @@ export default function EditClientScreen({ route, navigation }: Props) {
     if (!name.trim()) errs.name = 'Le nom est requis.';
     if (email && !/\S+@\S+\.\S+/.test(email)) errs.email = 'Email invalide.';
     setErrors(errs);
-    return Object.keys(errs).length === 0;
+    return Object.keys(errs ?? {}).length === 0;
   }
 
   async function handleSave() {
@@ -117,7 +118,7 @@ export default function EditClientScreen({ route, navigation }: Props) {
     );
   }
 
-  const currentLogo = logoUri ?? client?.logo_path ?? null;
+  const currentLogo = logoUri ?? (client?.logo_path ? getAssetUrl(client.logo_path) : null) ?? null;
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
@@ -135,7 +136,7 @@ export default function EditClientScreen({ route, navigation }: Props) {
       <FieldRow label="Nom *" error={errors.name}>
         <TextInput
           style={[styles.input, errors.name && styles.inputError]}
-          value={name} onChangeText={v => { setName(v); if (errors.name) setErrors(e => ({ ...e, name: '' })); }}
+          value={name} onChangeText={v => { setName(v); if (errors.name) setErrors(e => ({ ...(e ?? {}), name: '' })); }}
         />
       </FieldRow>
 

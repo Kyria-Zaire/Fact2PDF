@@ -6,6 +6,13 @@ namespace App\Models;
 
 class Invoice extends BaseModel
 {
+    public const STATUS_LABELS = [
+        'draft'   => 'Brouillon',
+        'pending' => 'En attente',
+        'paid'    => 'Payée',
+        'overdue' => 'En retard',
+    ];
+
     protected string $table = 'invoices';
 
     protected array $fillable = [

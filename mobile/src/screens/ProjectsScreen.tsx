@@ -33,7 +33,8 @@ export default function ProjectsScreen({ route, navigation }: Props) {
       const data = clientId
         ? await ProjectsApi.byClient(clientId)
         : await ProjectsApi.list();
-      const items: ApiProject[] = Array.isArray(data) ? data : (data as any).data ?? data;
+      const raw = Array.isArray(data) ? data : (data as any)?.data ?? data;
+      const items: ApiProject[] = Array.isArray(raw) ? raw : [];
       setProjects(items);
       setError(null);
     } catch (err: any) {

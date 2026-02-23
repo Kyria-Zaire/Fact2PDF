@@ -53,11 +53,13 @@ if ($config['debug']) {
 }
 
 // ---- Créer les dossiers de storage si besoin ----
-foreach (['logs', 'uploads/logos', 'cache'] as $dir) {
+foreach (['logs', 'cache'] as $dir) {
     $path = ROOT_PATH . '/storage/' . $dir;
-    if (!is_dir($path)) {
-        mkdir($path, 0755, true);
-    }
+    if (!is_dir($path)) mkdir($path, 0755, true);
+}
+foreach (['uploads/logos'] as $dir) {
+    $path = ROOT_PATH . '/public/storage/' . $dir;
+    if (!is_dir($path)) mkdir($path, 0755, true);
 }
 
 // ---- Démarrer la session sécurisée ----

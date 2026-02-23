@@ -124,7 +124,8 @@ class InvoiceController
 
         try {
             $pdfService = new PdfService();
-            $pdfService->generateInvoice($invoice, $items, $client, download: true);
+            $inline = isset($_GET['inline']) && $_GET['inline'] !== '';
+            $pdfService->generateInvoice($invoice, $items, $client, download: !$inline);
         } catch (\Exception $e) {
             logMessage('error', "PDF generation failed for invoice #{$id}: " . $e->getMessage());
             http_response_code(500);

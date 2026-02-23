@@ -2,14 +2,19 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Connexion — Fact2PDF</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
     <link rel="stylesheet" href="/assets/css/app.css">
+    <style>
+        .login-page { min-height: 100vh; min-height: 100dvh; padding: 1rem 0; box-sizing: border-box; }
+        .login-container { max-width: 400px; padding-left: 1rem; padding-right: 1rem; }
+    </style>
 </head>
-<body class="bg-light d-flex align-items-center" style="min-height:100vh">
+<body class="bg-light d-flex align-items-center login-page">
 
-<div class="container" style="max-width:400px">
+<div class="container login-container mx-auto">
     <div class="text-center mb-4">
         <h1 class="h3 text-primary fw-bold">
             <i class="bi bi-file-earmark-pdf-fill"></i> Fact2PDF
@@ -18,7 +23,7 @@
     </div>
 
     <div class="card shadow-sm">
-        <div class="card-body p-4">
+        <div class="card-body p-3 p-sm-4">
             <h2 class="card-title h5 mb-4">Connexion</h2>
 
             <?php if (!empty($error)): ?>
@@ -41,7 +46,7 @@
                            class="form-control" required autocomplete="current-password">
                 </div>
 
-                <button type="submit" class="btn btn-primary w-100">
+                <button type="submit" class="btn btn-primary w-100" style="min-height:44px">
                     Se connecter
                 </button>
             </form>

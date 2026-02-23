@@ -9,7 +9,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { ClientsApi, ApiClient } from '@/services/api';
-import { getRealmInstance }      from '@/store/realm';
+import { getRealmInstance, UPDATE_MODE_MODIFIED } from '@/store/realm';
 import { PAGE_SIZE }             from '@/constants/config';
 
 export interface UseClientsResult {
@@ -20,6 +20,12 @@ export interface UseClientsResult {
   error:       string | null;
   loadMore:    () => void;
   refresh:     () => void;
+}
+
+function dedupeById(list: ApiClient[]): ApiClient[] {
+  const byId = new Map<number, ApiClient>();
+  list.forEach(c => byId.set(c.id, c));
+  return Array.from(byId.values());
 }
 
 export function useClients(): UseClientsResult {
@@ -36,9 +42,10 @@ export function useClients(): UseClientsResult {
   async function loadFromCache() {
     try {
       const realm  = await getRealmInstance();
+      if (!realm) return;
       const cached = realm.objects('Client').sorted('name');
       if (cached.length > 0) {
-        // Convert Realm objects to plain ApiClient
+        // Convert Realm objects to plain ApiClient (dedupe au cas où le cache aurait des doublons)
         const plain: ApiClient[] = cached.map((c: any) => ({
           id:          c._id,
           name:        c.name,
@@ -53,7 +60,7 @@ export function useClients(): UseClientsResult {
           invoice_count: 0,
           total_billed:  0,
         }));
-        setClients(plain);
+        setClients(dedupeById(plain));
       }
     } catch {
       // Cache miss is non-fatal
@@ -64,6 +71,7 @@ export function useClients(): UseClientsResult {
   async function upsertCache(items: ApiClient[]) {
     try {
       const realm = await getRealmInstance();
+      if (!realm) return;
       realm.write(() => {
         for (const c of items) {
           realm.create('Client', {
@@ -78,7 +86,7 @@ export function useClients(): UseClientsResult {
             logo_path:   c.logo_path ?? undefined,
             notes:       c.notes ?? undefined,
             synced_at:   Date.now(),
-          }, Realm.UpdateMode.Modified);
+          }, UPDATE_MODE_MODIFIED);
         }
       });
     } catch {
@@ -91,9 +99,14 @@ export function useClients(): UseClientsResult {
     fetchingRef.current = true;
     try {
       const data = await ClientsApi.list({ page, limit: PAGE_SIZE });
-      const items: ApiClient[] = Array.isArray(data) ? data : (data as any).data ?? data;
+      const raw: ApiClient[] = Array.isArray(data) ? data : (data as any).data ?? data;
+      const items = dedupeById(raw);
 
-      setClients(prev => isRefresh ? items : [...prev, ...items]);
+      // Page 1 ou refresh : remplacer la liste (évite doublons cache + API). Sinon : ajouter à la fin.
+      setClients(prev => {
+        const next = (page === 1 || isRefresh) ? items : dedupeById([...prev, ...items]);
+        return next;
+      });
       setHasMore(items.length >= PAGE_SIZE);
       setError(null);
 

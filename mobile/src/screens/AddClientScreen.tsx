@@ -50,8 +50,8 @@ export default function AddClientScreen({ navigation }: Props) {
     return {
       value:         form[key],
       onChangeText:  (v: string) => {
-        setForm(f => ({ ...f, [key]: v }));
-        if (errors[key]) setErrors(e => ({ ...e, [key]: undefined }));
+        setForm(f => ({ ...(f ?? {}), [key]: v }));
+        if (errors[key]) setErrors(e => ({ ...(e ?? {}), [key]: undefined }));
       },
     };
   }
@@ -98,7 +98,7 @@ export default function AddClientScreen({ navigation }: Props) {
     if (!form.name.trim()) errs.name = 'Le nom est requis.';
     if (form.email && !/\S+@\S+\.\S+/.test(form.email)) errs.email = 'Email invalide.';
     setErrors(errs);
-    return Object.keys(errs).length === 0;
+    return Object.keys(errs ?? {}).length === 0;
   }
 
   async function handleSubmit() {
@@ -176,7 +176,7 @@ export default function AddClientScreen({ navigation }: Props) {
             <TouchableOpacity
               key={c}
               style={[styles.countryChip, form.country === c && styles.countryChipActive]}
-              onPress={() => setForm(f => ({ ...f, country: c }))}
+              onPress={() => setForm(f => ({ ...(f ?? {}), country: c }))}
             >
               <Text style={[styles.countryChipText, form.country === c && styles.countryChipTextActive]}>
                 {c}

@@ -1,9 +1,9 @@
 <?php $pageTitle = 'Dashboard'; ?>
 <?php ob_start(); ?>
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
     <h1 class="h4 mb-0">Dashboard</h1>
-    <div class="d-flex gap-2">
+    <div class="d-flex gap-2 flex-grow-1 flex-md-grow-0 justify-content-md-end">
         <a href="/invoices/create" class="btn btn-primary btn-sm">
             <i class="bi bi-plus-lg"></i> Nouvelle facture
         </a>
@@ -89,8 +89,8 @@
     <div class="col-md-4">
         <div class="card h-100">
             <div class="card-header">Statuts factures</div>
-            <div class="card-body d-flex align-items-center justify-content-center">
-                <canvas id="chartStatus" style="max-height:220px" data-chart="doughnut"></canvas>
+            <div class="card-body d-flex align-items-center justify-content-center" id="chartStatusContainer">
+                <canvas id="chartStatus" style="max-height:220px"></canvas>
             </div>
         </div>
     </div>
@@ -108,21 +108,23 @@
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-light">
                         <tr>
-                            <th>N°</th><th>Client</th><th>Date</th><th>Total</th><th>Statut</th><th></th>
+                            <th>N°</th><th>Client</th><th class="col-hide-sm">Date</th><th>Total</th><th>Statut</th><th></th>
                         </tr>
                     </thead>
                     <tbody>
-                    <?php foreach ($recent as $inv):
+                    <?php
                         $badges = ['draft'=>'secondary','pending'=>'warning text-dark','paid'=>'success','overdue'=>'danger'];
+                        $invoiceStatusLabels = \App\Models\Invoice::STATUS_LABELS;
+                        foreach ($recent as $inv):
                     ?>
                         <tr>
                             <td><code class="small"><?= e($inv['number']) ?></code></td>
                             <td><?= e($inv['client_name']) ?></td>
-                            <td class="text-muted small"><?= formatDate($inv['issue_date']) ?></td>
+                            <td class="text-muted small col-hide-sm"><?= formatDate($inv['issue_date']) ?></td>
                             <td class="fw-semibold"><?= formatMoney((float)$inv['total']) ?></td>
                             <td>
                                 <span class="badge text-bg-<?= $badges[$inv['status']] ?? 'secondary' ?>">
-                                    <?= e($inv['status']) ?>
+                                    <?= e($invoiceStatusLabels[$inv['status']] ?? $inv['status']) ?>
                                 </span>
                             </td>
                             <td>
@@ -176,7 +178,14 @@
     </div>
 </div>
 
-<!-- Données JSON injectées côté serveur → lues par app.js (évite XHR supplémentaire) -->
+<?php
+$statusColorMap = ['draft' => '#6c757d', 'pending' => '#ffc107', 'paid' => '#198754', 'overdue' => '#dc3545'];
+$dashStatusColors = [];
+foreach ($statusBreakdown as $r) {
+    $dashStatusColors[] = $statusColorMap[$r['status']] ?? '#adb5bd';
+}
+?>
+<!-- Données JSON injectées côté serveur → lues par app.js -->
 <script id="dashData" type="application/json">
 {
     "ca": {
@@ -184,10 +193,46 @@
         "data":   <?= json_encode(array_map(fn($r) => (float)$r['revenue'], $caMonthly)) ?>
     },
     "status": {
-        "labels": <?= json_encode(array_column($statusBreakdown, 'status'), JSON_UNESCAPED_UNICODE) ?>,
-        "data":   <?= json_encode(array_map(fn($r) => (int)$r['count'], $statusBreakdown)) ?>
+        "labels": <?= json_encode(array_map(fn($r) => \App\Models\Invoice::STATUS_LABELS[$r['status']] ?? $r['status'], $statusBreakdown), JSON_UNESCAPED_UNICODE) ?>,
+        "data":   <?= json_encode(array_map(fn($r) => (int)$r['count'], $statusBreakdown)) ?>,
+        "colors": <?= json_encode($dashStatusColors) ?>
     }
 }
+</script>
+<!-- Graphique Statuts factures : nouveau canvas à chaque init pour éviter "Canvas is already in use". -->
+<script>
+(function() {
+    function initStatusChart() {
+        if (typeof Chart === 'undefined') { setTimeout(initStatusChart, 50); return; }
+        var container = document.getElementById('chartStatusContainer');
+        var dataEl = document.getElementById('dashData');
+        if (!container || !dataEl) return;
+        var dash = JSON.parse(dataEl.textContent);
+        var status = dash.status;
+        if (!status || !status.labels || !status.labels.length) return;
+        var colors = Array.isArray(status.colors) && status.colors.length === status.labels.length
+            ? status.colors
+            : ['#6c757d','#ffc107','#198754','#dc3545'].slice(0, status.labels.length);
+        container.innerHTML = '';
+        var canvas = document.createElement('canvas');
+        canvas.id = 'chartStatus';
+        canvas.setAttribute('style', 'max-height:220px');
+        container.appendChild(canvas);
+        new Chart(canvas, {
+            type: 'doughnut',
+            data: {
+                labels: status.labels,
+                datasets: [{ data: status.data, backgroundColor: colors, borderWidth: 2 }]
+            },
+            options: {
+                responsive: true, cutout: '65%',
+                plugins: { legend: { position: 'bottom', labels: { padding: 12, font: { size: 11 } } } }
+            }
+        });
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initStatusChart);
+    else initStatusChart();
+})();
 </script>
 
 <?php $content = ob_get_clean(); ?>

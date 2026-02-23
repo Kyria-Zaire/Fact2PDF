@@ -27,7 +27,7 @@ return [
 
     'upload' => [
         'max_size' => (int) env('UPLOAD_MAX_SIZE', 5242880),  // 5MB
-        'path'     => env('UPLOAD_PATH', __DIR__ . '/../storage/uploads'),
+        'path'     => env('UPLOAD_PATH', __DIR__ . '/../public/storage/uploads'),
         'allowed'  => ['image/jpeg', 'image/png', 'image/webp'],
     ],
 

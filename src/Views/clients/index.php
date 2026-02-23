@@ -1,11 +1,11 @@
 <?php $pageTitle = 'Clients'; ?>
 <?php ob_start(); ?>
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
     <h1 class="h4 mb-0">Clients <span class="badge text-bg-secondary ms-1" id="clientCount"><?= count($clients) ?></span></h1>
-    <div class="d-flex gap-2">
+    <div class="d-flex gap-2 flex-wrap flex-grow-1 flex-md-grow-0">
         <!-- Recherche live -->
-        <div class="input-group input-group-sm" style="width:220px">
+        <div class="input-group input-group-sm client-search-group">
             <span class="input-group-text"><i class="bi bi-search"></i></span>
             <input type="search" id="clientSearch" class="form-control" placeholder="Rechercher…">
         </div>
@@ -89,7 +89,7 @@
      ================================================================ -->
 <?php if (in_array($_SESSION['role'] ?? '', ['admin','user'])): ?>
 <div class="modal fade" id="modalClient" tabindex="-1" aria-labelledby="modalClientLabel">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-lg modal-fullscreen-sm-down">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="modalClientLabel">Ajouter un client</h5>

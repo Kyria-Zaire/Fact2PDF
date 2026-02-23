@@ -3,21 +3,36 @@
  *
  * - Demande la permission au premier lancement
  * - Enregistre le push token sur le serveur
- * - Configure les handlers de notification foreground/background
+ * - En Expo Go (SDK 53+) les push sont désactivés → on skip l'inscription
  */
 
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
+import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 import { NotificationsApi } from './api';
 import { NOTIF_POLL_INTERVAL } from '@/constants/config';
 
+/** Expo Go ne supporte plus les push (SDK 53+) → pas d'inscription token */
+function isExpoGo(): boolean {
+  return Constants.appOwnership === 'expo';
+}
+
+/** UUID v4 simple — projectId EAS doit être un vrai UUID, pas le placeholder */
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+function hasValidEasProjectId(): boolean {
+  const id = Constants.expoConfig?.extra?.eas?.projectId ?? Constants.easConfig?.projectId;
+  return typeof id === 'string' && UUID_REGEX.test(id);
+}
+
 // Comportement en foreground : afficher la notification + son
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge:  true,
+    shouldShowAlert:  true,
+    shouldPlaySound:  true,
+    shouldSetBadge:   true,
+    shouldShowBanner: true,
+    shouldShowList:   true,
   }),
 });
 
@@ -26,8 +41,13 @@ Notifications.setNotificationHandler({
  * À appeler au démarrage de l'app (après login).
  */
 export async function registerForPushNotifications(): Promise<string | null> {
+  if (isExpoGo()) {
+    return null; // Push non supportés dans Expo Go (SDK 53+)
+  }
+  if (!hasValidEasProjectId()) {
+    return null; // Pas de projectId EAS valide → évite l'erreur 400 "Invalid uuid"
+  }
   if (!Device.isDevice) {
-    console.warn('[Notif] Push non disponible sur simulateur.');
     return null;
   }
 

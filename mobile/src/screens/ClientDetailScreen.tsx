@@ -20,6 +20,7 @@ import { useInvoices }            from '@/hooks/useInvoices';
 import InvoiceCard                from '@/components/InvoiceCard';
 import ProjectCard                from '@/components/ProjectCard';
 import { Colors }                 from '@/constants/colors';
+import { getAssetUrl }            from '@/constants/config';
 import { AppStackParamList }      from '@/navigation';
 import { ProjectsApi, ApiProject } from '@/services/api';
 
@@ -35,7 +36,7 @@ export default function ClientDetailScreen({ route, navigation }: Props) {
   const [projects, setProjects] = useState<ApiProject[]>([]);
   const [projLoad, setProjLoad] = useState(false);
 
-  const { invoices, loading: invLoad, refresh: refreshInv } = useInvoices(clientId);
+  const { invoices = [], loading: invLoad, refresh: refreshInv } = useInvoices(clientId);
 
   // Fetch client detail
   useEffect(() => {
@@ -50,11 +51,14 @@ export default function ClientDetailScreen({ route, navigation }: Props) {
 
   // Fetch projects when tab opened
   useEffect(() => {
-    if (tab !== 'projects' || projects.length > 0) return;
+    if (tab !== 'projects' || (projects ?? []).length > 0) return;
     setProjLoad(true);
     ProjectsApi.byClient(clientId)
-      .then(data => setProjects(Array.isArray(data) ? data : (data as any).data ?? data))
-      .catch(() => {})
+      .then(data => {
+        const raw = Array.isArray(data) ? data : (data as any)?.data ?? data;
+        setProjects(Array.isArray(raw) ? raw : []);
+      })
+      .catch(() => setProjects([]))
       .finally(() => setProjLoad(false));
   }, [tab, clientId]);
 
@@ -76,7 +80,7 @@ export default function ClientDetailScreen({ route, navigation }: Props) {
       {/* Header card */}
       <View style={styles.headerCard}>
         {client.logo_path ? (
-          <Image source={{ uri: client.logo_path }} style={styles.logo} resizeMode="contain" />
+          <Image source={{ uri: getAssetUrl(client.logo_path) ?? '' }} style={styles.logo} resizeMode="contain" />
         ) : (
           <View style={[styles.avatar, { backgroundColor: avatarColor }]}>
             <Text style={styles.avatarText}>{initial}</Text>
@@ -104,7 +108,7 @@ export default function ClientDetailScreen({ route, navigation }: Props) {
             onPress={() => setTab(t)}
           >
             <Text style={[styles.tabText, tab === t && styles.tabTextActive]}>
-              {t === 'info' ? 'Infos' : t === 'invoices' ? `Factures (${invoices.length})` : 'Projets'}
+              {t === 'info' ? 'Infos' : t === 'invoices' ? `Factures (${(invoices ?? []).length})` : 'Projets'}
             </Text>
           </TouchableOpacity>
         ))}
@@ -114,20 +118,20 @@ export default function ClientDetailScreen({ route, navigation }: Props) {
       <ScrollView contentContainerStyle={styles.content}>
         {tab === 'info' && <InfoTab client={client} />}
         {tab === 'invoices' && (
-          invLoad && invoices.length === 0
+          invLoad && (invoices ?? []).length === 0
             ? <ActivityIndicator color={Colors.primary} style={{ marginTop: 40 }} />
-            : invoices.length === 0
+            : (invoices ?? []).length === 0
               ? <Text style={styles.empty}>Aucune facture.</Text>
-              : invoices.map(inv => (
+              : (invoices ?? []).map(inv => (
                   <InvoiceCard key={inv.id} invoice={inv} />
                 ))
         )}
         {tab === 'projects' && (
           projLoad
             ? <ActivityIndicator color={Colors.primary} style={{ marginTop: 40 }} />
-            : projects.length === 0
+            : (projects ?? []).length === 0
               ? <Text style={styles.empty}>Aucun projet.</Text>
-              : projects.map(p => (
+              : (projects ?? []).map(p => (
                   <ProjectCard
                     key={p.id}
                     project={p}

@@ -1,11 +1,11 @@
 <?php $pageTitle = 'Factures'; ?>
 <?php ob_start(); ?>
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
     <h1 class="h4 mb-0">
         Factures <span class="badge text-bg-secondary ms-1"><?= count($invoices) ?></span>
     </h1>
-    <div class="d-flex gap-2 flex-wrap">
+    <div class="page-toolbar d-flex gap-2 flex-wrap flex-grow-1 flex-md-grow-0 justify-content-md-end">
         <!-- Filtre statut -->
         <select id="filterStatus" class="form-select form-select-sm" style="width:140px">
             <option value="">Tous statuts</option>
@@ -42,41 +42,44 @@
 
 <!-- ---- Table factures ---- -->
 <div class="card">
-    <div class="table-responsive">
+    <div class="table-responsive table-invoices">
         <table class="table table-hover align-middle mb-0" id="invoicesTable">
             <thead class="table-light">
                 <tr>
                     <th>Numéro</th>
-                    <th>Client</th>
-                    <th>Date</th>
-                    <th>Échéance</th>
+                    <th class="col-hide-xs">Client</th>
+                    <th class="col-hide-sm">Date</th>
+                    <th class="col-hide-xs">Échéance</th>
                     <th class="text-end">Total TTC</th>
                     <th>Statut</th>
                     <th class="text-center">Actions</th>
                 </tr>
             </thead>
             <tbody>
-            <?php foreach ($invoices as $inv):
-                $badges   = ['draft'=>'secondary','pending'=>'warning text-dark','paid'=>'success','overdue'=>'danger'];
-                $isLate   = $inv['status'] === 'overdue';
+            <?php
+                $badges = ['draft'=>'secondary','pending'=>'warning text-dark','paid'=>'success','overdue'=>'danger'];
+                $statusLabels = \App\Models\Invoice::STATUS_LABELS;
+                foreach ($invoices as $inv):
+                $isLate = $inv['status'] === 'overdue';
             ?>
                 <tr class="invoice-row" data-status="<?= e($inv['status']) ?>" <?= $isLate ? 'class="table-danger"' : '' ?>>
                     <td>
                         <code class="small"><?= e($inv['number']) ?></code>
+                        <div class="text-muted x-small d-block d-sm-none mt-0"><?= e($inv['client_name']) ?></div>
                     </td>
-                    <td>
+                    <td class="d-none d-sm-table-cell">
                         <a href="/clients/<?= $inv['client_id'] ?>" class="text-decoration-none">
                             <?= e($inv['client_name']) ?>
                         </a>
                     </td>
-                    <td class="text-muted small"><?= formatDate($inv['issue_date']) ?></td>
-                    <td class="text-muted small <?= ($inv['status'] === 'overdue') ? 'text-danger fw-semibold' : '' ?>">
+                    <td class="text-muted small col-hide-sm"><?= formatDate($inv['issue_date']) ?></td>
+                    <td class="text-muted small col-hide-xs <?= ($inv['status'] === 'overdue') ? 'text-danger fw-semibold' : '' ?>">
                         <?= formatDate($inv['due_date']) ?>
                     </td>
                     <td class="text-end fw-semibold"><?= formatMoney((float)$inv['total']) ?></td>
                     <td>
                         <span class="badge text-bg-<?= $badges[$inv['status']] ?? 'secondary' ?>">
-                            <?= e($inv['status']) ?>
+                            <?= e($statusLabels[$inv['status']] ?? $inv['status']) ?>
                         </span>
                     </td>
                     <td class="text-center">
@@ -122,7 +125,7 @@
 </form>
 
 <!-- ---- Panneau PDF preview (offcanvas Bootstrap) ---- -->
-<div class="offcanvas offcanvas-end" style="width:55%" tabindex="-1" id="pdfPreviewCanvas">
+<div class="offcanvas offcanvas-end" style="width:55%;max-width:100%" tabindex="-1" id="pdfPreviewCanvas">
     <div class="offcanvas-header">
         <h5 class="offcanvas-title">Aperçu — <span id="pdfPreviewNum"></span></h5>
         <div class="ms-auto d-flex gap-2">
@@ -132,9 +135,9 @@
             <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
         </div>
     </div>
-    <div class="offcanvas-body p-0">
-        <!-- Iframe pour afficher le PDF inline -->
-        <iframe id="pdfPreviewFrame" src="" style="width:100%;height:100%;border:none"></iframe>
+    <div class="offcanvas-body p-0 d-flex flex-column" style="min-height:80vh;">
+        <!-- Iframe pour afficher le PDF inline (?inline=1) -->
+        <iframe id="pdfPreviewFrame" src="" style="width:100%;flex:1;min-height:75vh;border:none" title="Aperçu PDF"></iframe>
     </div>
 </div>
 
