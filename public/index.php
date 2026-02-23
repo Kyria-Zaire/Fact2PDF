@@ -11,14 +11,21 @@ declare(strict_types=1);
 // ---- Constante racine ----
 define('ROOT_PATH', dirname(__DIR__));
 
-// ---- Autoloader PSR-4 manuel (sans Composer pour l'instant) ----
-spl_autoload_register(function (string $class): void {
-    // Namespace App\ → src/
-    $file = ROOT_PATH . '/src/' . str_replace(['App\\', '\\'], ['', '/'], $class) . '.php';
-    if (file_exists($file)) {
-        require $file;
-    }
-});
+// ---- Autoloader Composer (PSR-4 + vendor libs) ----
+// Fallback sur autoloader manuel si vendor/ absent (ex: déploiement sans Composer)
+$composerAutoload = ROOT_PATH . '/vendor/autoload.php';
+if (file_exists($composerAutoload)) {
+    require $composerAutoload;
+} else {
+    // Autoloader de secours (dev sans Composer installé)
+    spl_autoload_register(function (string $class): void {
+        $file = ROOT_PATH . '/src/' . str_replace(['App\\', '\\'], ['', '/'], $class) . '.php';
+        if (file_exists($file)) {
+            require $file;
+        }
+    });
+    require ROOT_PATH . '/src/Helpers/helpers.php';
+}
 
 // ---- Charger .env ----
 $envFile = ROOT_PATH . '/.env';
@@ -30,13 +37,10 @@ if (file_exists($envFile)) {
         }
         [$key, $val] = explode('=', $line, 2);
         $key = trim($key);
-        $val = trim($val, " \t\"'");  // Retire quotes si présentes
+        $val = trim($val, " \t\"'");
         $_ENV[$key] = $val;
     }
 }
-
-// ---- Helpers globaux ----
-require ROOT_PATH . '/src/Helpers/helpers.php';
 
 // ---- Gestion des erreurs ----
 $config = require ROOT_PATH . '/config/app.php';

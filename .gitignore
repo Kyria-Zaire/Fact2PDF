@@ -39,4 +39,8 @@ docker-compose.override.yml
 
 # PHPUnit
 .phpunit.cache/
+.phpunit.result.cache
 coverage/
+
+# Composer lock généré localement (committer en prod)
+# composer.lock  ← décommenter si projet lib ; garder commité pour app

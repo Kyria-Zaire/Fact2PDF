@@ -18,7 +18,14 @@ declare(strict_types=1);
 
 // Bootstrap
 define('ROOT_PATH', dirname(__DIR__, 2));
-require ROOT_PATH . '/src/Helpers/helpers.php';
+
+// Autoloader Composer
+$composerAutoload = ROOT_PATH . '/vendor/autoload.php';
+if (file_exists($composerAutoload)) {
+    require $composerAutoload;
+} else {
+    require ROOT_PATH . '/src/Helpers/helpers.php';
+}
 
 // Charger .env
 $envFile = ROOT_PATH . '/.env';

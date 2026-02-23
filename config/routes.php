@@ -35,7 +35,8 @@ return [
     ['POST', '/invoices/{id}',         'InvoiceController@update',   ['admin', 'user']],
     ['POST', '/invoices/{id}/delete',  'InvoiceController@delete',   ['admin']],
     ['GET',  '/invoices/{id}/pdf',     'InvoiceController@pdf',      ['admin', 'user', 'viewer']],
-    ['GET',  '/invoices/export/csv',   'InvoiceController@exportCsv',['admin', 'user']],
+    ['GET',  '/invoices/export/xlsx',  'InvoiceController@exportXlsx',['admin', 'user']],
+    ['GET',  '/invoices/export/csv',   'InvoiceController@exportCsv', ['admin', 'user']],
 
     // ---- Admin Panel ----
     ['GET',  '/admin',        'AdminController@index',      ['admin']],

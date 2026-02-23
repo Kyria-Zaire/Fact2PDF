@@ -3,58 +3,61 @@
 # ============================================================
 FROM php:8.3-fpm-alpine
 
-# Métadonnées
 LABEL maintainer="Fact2PDF Team"
 LABEL description="PHP 8.3 FPM pour Fact2PDF"
 
-# Variables de build
 ARG UID=1000
 ARG GID=1000
 
-# Dépendances système + extensions PHP
+# ---- Dépendances système + extensions PHP ----
 RUN apk add --no-cache \
-        # Outils de base
-        git \
-        curl \
-        unzip \
-        bash \
-        # Dépendances pour extensions PHP
-        libpng-dev \
-        libjpeg-turbo-dev \
-        libwebp-dev \
-        freetype-dev \
-        libzip-dev \
-        oniguruma-dev \
-        icu-dev \
+        git curl unzip bash \
+        # GD (images / TCPDF)
+        libpng-dev libjpeg-turbo-dev libwebp-dev freetype-dev \
+        # Zip, mbstring, intl
+        libzip-dev oniguruma-dev icu-dev \
+        # Intervention/Image (vips backend, optionnel)
+        libgomp \
     && docker-php-ext-configure gd \
         --with-freetype \
         --with-jpeg \
         --with-webp \
     && docker-php-ext-install \
-        pdo \
-        pdo_mysql \
-        gd \
-        zip \
-        mbstring \
-        intl \
-        opcache \
+        pdo pdo_mysql \
+        gd zip mbstring intl opcache \
+        exif \
     && rm -rf /var/cache/apk/*
 
-# Composer
+# ---- Composer 2 ----
 COPY --from=composer:2.7 /usr/bin/composer /usr/bin/composer
 
-# Configuration PHP pour production/dev
+# ---- Configuration PHP ----
 COPY docker/php/php.ini /usr/local/etc/php/conf.d/custom.ini
 
-# Créer un utilisateur non-root
+# ---- Utilisateur non-root ----
 RUN addgroup -g ${GID} appgroup && \
     adduser -u ${UID} -G appgroup -s /bin/bash -D appuser
 
-# Répertoire de travail
 WORKDIR /var/www/html
 
-# Permissions
-RUN chown -R appuser:appgroup /var/www/html
+# ---- Installer les dépendances Composer (layer séparé pour cache Docker) ----
+# Copier uniquement les fichiers composer d'abord (optimise le cache)
+COPY --chown=appuser:appgroup composer.json composer.lock* ./
+
+RUN composer install \
+        --no-interaction \
+        --no-scripts \
+        --no-dev \
+        --optimize-autoloader \
+        --prefer-dist \
+    && composer clear-cache
+
+# ---- Copier le code source ----
+COPY --chown=appuser:appgroup . .
+
+# ---- Créer les dossiers de stockage ----
+RUN mkdir -p storage/logs storage/uploads/logos storage/cache \
+    && chmod -R 775 storage
 
 USER appuser
 

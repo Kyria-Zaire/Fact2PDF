@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Models\Client;
+use App\Services\ImageService;
 
 class ClientController
 {
@@ -65,10 +66,12 @@ class ClientController
         verifyCsrf();
         $this->findOrAbort((int) $id);
 
-        $data = $this->sanitize($_POST);
+        $existing = $this->findOrAbort((int) $id);
+        $data     = $this->sanitize($_POST);
 
         if (!empty($_FILES['logo']['name'])) {
-            $data['logo_path'] = $this->handleLogoUpload($_FILES['logo']);
+            // Passer l'ancien chemin pour suppression propre
+            $data['logo_path'] = $this->handleLogoUpload($_FILES['logo'], $existing['logo_path'] ?? null);
         }
 
         $this->model->update((int) $id, $data);
@@ -110,29 +113,21 @@ class ClientController
         ];
     }
 
-    private function handleLogoUpload(array $file): string
+    /**
+     * Délègue l'upload à ImageService :
+     * - Validation MIME réelle (pas celle déclarée par le client)
+     * - Redimensionnement 300×150 WebP via Intervention/Image
+     * - Nom aléatoire sécurisé, suppression de l'ancien logo
+     */
+    private function handleLogoUpload(array $file, ?string $oldPath = null): string
     {
-        $config   = require ROOT_PATH . '/config/app.php';
-        $allowed  = $config['upload']['allowed'];
-        $maxSize  = $config['upload']['max_size'];
-        $uploadDir = $config['upload']['path'] . '/logos/';
+        $svc  = new ImageService();
 
-        if (!is_dir($uploadDir)) {
-            mkdir($uploadDir, 0755, true);
+        // Supprimer l'ancien logo si on remplace
+        if ($oldPath) {
+            $svc->delete($oldPath);
         }
 
-        if (!in_array($file['type'], $allowed, true)) {
-            throw new \RuntimeException('Type de fichier non autorisé.');
-        }
-
-        if ($file['size'] > $maxSize) {
-            throw new \RuntimeException('Fichier trop volumineux.');
-        }
-
-        $ext      = pathinfo($file['name'], PATHINFO_EXTENSION);
-        $filename = bin2hex(random_bytes(8)) . '.' . strtolower($ext);
-        move_uploaded_file($file['tmp_name'], $uploadDir . $filename);
-
-        return '/storage/uploads/logos/' . $filename;
+        return $svc->uploadLogo($file);
     }
 }
