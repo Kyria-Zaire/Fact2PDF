@@ -1,0 +1,93 @@
+# ============================================================
+# Fact2PDF - Docker Compose Stack (Dev)
+# Services : web (PHP-FPM + Nginx), db (MySQL), phpmyadmin
+# ============================================================
+
+services:
+
+  # ---- Nginx (reverse proxy) ----
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: fact2pdf_nginx
+    ports:
+      - "8080:80"
+    volumes:
+      - .:/var/www/html:ro
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - web
+    networks:
+      - fact2pdf_net
+    restart: unless-stopped
+
+  # ---- PHP-FPM (backend) ----
+  web:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+      args:
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
+    container_name: fact2pdf_php
+    volumes:
+      - .:/var/www/html
+      - ./storage:/var/www/html/storage
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - fact2pdf_net
+    restart: unless-stopped
+
+  # ---- MySQL 8 ----
+  db:
+    image: mysql:8.0
+    container_name: fact2pdf_db
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password_change_me
+      MYSQL_DATABASE: ${DB_NAME:-fact2pdf}
+      MYSQL_USER: ${DB_USER:-fact2pdf_user}
+      MYSQL_PASSWORD: ${DB_PASS:-change_this_password}
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
+      - ./database/seeds.sql:/docker-entrypoint-initdb.d/02_seeds.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot_password_change_me"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - fact2pdf_net
+    restart: unless-stopped
+
+  # ---- phpMyAdmin (admin DB) ----
+  phpmyadmin:
+    image: phpmyadmin:5.2-apache
+    container_name: fact2pdf_pma
+    ports:
+      - "8081:80"
+    environment:
+      PMA_HOST: db
+      PMA_USER: ${DB_USER:-fact2pdf_user}
+      PMA_PASSWORD: ${DB_PASS:-change_this_password}
+      UPLOAD_LIMIT: 20M
+    depends_on:
+      - db
+    networks:
+      - fact2pdf_net
+    restart: unless-stopped
+
+# ---- Volumes persistants ----
+volumes:
+  db_data:
+    driver: local
+
+# ---- Réseau isolé ----
+networks:
+  fact2pdf_net:
+    driver: bridge

@@ -1,0 +1,42 @@
+# ============================================================
+# Fact2PDF - .gitignore
+# ============================================================
+
+# Secrets
+.env
+*.env.local
+
+# Dépendances PHP
+vendor/
+
+# Dépendances Node (mobile)
+node_modules/
+mobile/node_modules/
+
+# Uploads & Storage
+storage/uploads/
+storage/logs/
+storage/cache/
+
+# Build outputs
+public/build/
+mobile/android/
+mobile/ios/
+mobile/.expo/
+
+# IDE
+.idea/
+.vscode/settings.json
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker overrides locaux
+docker-compose.override.yml
+
+# PHPUnit
+.phpunit.cache/
+coverage/
