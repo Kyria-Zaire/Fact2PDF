@@ -4,11 +4,11 @@
 -- ============================================================
 
 -- ---- Admin par défaut ----
--- Password: Admin123! (bcrypt cost 12)
+-- Password: password (bcrypt cost 12)
 INSERT INTO `users` (`username`, `email`, `password_hash`, `role`) VALUES
-('admin',   'admin@fact2pdf.local',   '$2y$12$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin'),
-('freeway', 'freeway@fact2pdf.local', '$2y$12$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'user'),
-('viewer',  'viewer@fact2pdf.local',  '$2y$12$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'viewer');
+('admin',   'admin@fact2pdf.local',   '$2y$12$3pMLf2ZtxeIxw4KeUFoj7OKHBX5KRfK5UxuArgdF8xF/91uG2TrA6', 'admin'),
+('freeway', 'freeway@fact2pdf.local', '$2y$12$3pMLf2ZtxeIxw4KeUFoj7OKHBX5KRfK5UxuArgdF8xF/91uG2TrA6', 'user'),
+('viewer',  'viewer@fact2pdf.local',  '$2y$12$3pMLf2ZtxeIxw4KeUFoj7OKHBX5KRfK5UxuArgdF8xF/91uG2TrA6', 'viewer');
 
 -- ---- Clients de test ----
 INSERT INTO `clients` (`name`, `email`, `phone`, `address`, `city`, `postal_code`, `country`, `created_by`) VALUES
