@@ -38,6 +38,21 @@ return [
     ['GET',  '/invoices/export/xlsx',  'InvoiceController@exportXlsx',['admin', 'user']],
     ['GET',  '/invoices/export/csv',   'InvoiceController@exportCsv', ['admin', 'user']],
 
+    // ---- Projets (CRUD + timeline AJAX) ----
+    ['GET',  '/projects',                    'ProjectController@index',         ['admin', 'user', 'viewer']],
+    ['GET',  '/projects/create',             'ProjectController@create',        ['admin', 'user']],
+    ['POST', '/projects',                    'ProjectController@store',         ['admin', 'user']],
+    ['GET',  '/projects/{id}',               'ProjectController@show',          ['admin', 'user', 'viewer']],
+    ['GET',  '/projects/{id}/edit',          'ProjectController@edit',          ['admin', 'user']],
+    ['POST', '/projects/{id}',               'ProjectController@update',        ['admin', 'user']],
+    ['POST', '/projects/{id}/delete',        'ProjectController@delete',        ['admin']],
+    ['POST', '/projects/{id}/timeline',      'ProjectController@updateTimeline',['admin', 'user']],
+
+    // ---- Notifications (polling) ----
+    ['GET',  '/notifications/poll',          'NotificationController@poll',        ['admin', 'user', 'viewer']],
+    ['POST', '/notifications/{id}/read',     'NotificationController@markRead',    ['admin', 'user', 'viewer']],
+    ['POST', '/notifications/read-all',      'NotificationController@markAllRead', ['admin', 'user', 'viewer']],
+
     // ---- Admin Panel ----
     ['GET',  '/admin',        'AdminController@index',      ['admin']],
     ['GET',  '/admin/users',  'AdminController@users',      ['admin']],

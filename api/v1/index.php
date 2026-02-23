@@ -10,8 +10,12 @@
  *   GET    /api/v1/clients         → Liste clients
  *   POST   /api/v1/clients         → Créer client
  *   GET    /api/v1/clients/{id}    → Détail client
- *   GET    /api/v1/invoices        → Liste factures
- *   GET    /api/v1/invoices/{id}   → Détail facture
+ *   GET    /api/v1/invoices          → Liste factures
+ *   GET    /api/v1/invoices/{id}    → Détail facture
+ *   GET    /api/v1/projects         → Liste projets
+ *   POST   /api/v1/projects         → Créer projet
+ *   GET    /api/v1/projects/{id}    → Détail projet
+ *   PATCH  /api/v1/projects/{id}/timeline → Mettre à jour timeline
  */
 
 declare(strict_types=1);
@@ -66,6 +70,7 @@ try {
         'auth'     => require __DIR__ . '/auth.php',
         'clients'  => require __DIR__ . '/clients.php',
         'invoices' => require __DIR__ . '/invoices.php',
+        'projects' => require __DIR__ . '/projects.php',
         default    => apiError(404, 'Endpoint introuvable.')
     };
 } catch (\Exception $e) {

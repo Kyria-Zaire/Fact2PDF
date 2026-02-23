@@ -27,13 +27,21 @@
                 <li class="nav-item">
                     <a class="nav-link" href="/invoices"><i class="bi bi-receipt"></i> Factures</a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/projects"><i class="bi bi-kanban"></i> Projets</a>
+                </li>
                 <?php if (($_SESSION['role'] ?? '') === 'admin'): ?>
                 <li class="nav-item">
                     <a class="nav-link" href="/admin"><i class="bi bi-gear"></i> Admin</a>
                 </li>
                 <?php endif; ?>
             </ul>
-            <div class="navbar-nav">
+            <div class="navbar-nav align-items-center">
+                <!-- Cloche notifications (polling) -->
+                <button class="btn btn-link nav-link text-white position-relative me-2" id="btnNotif" title="Notifications">
+                    <i class="bi bi-bell fs-5"></i>
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none" id="notifBadge">0</span>
+                </button>
                 <span class="navbar-text me-3 text-white-50">
                     <i class="bi bi-person-circle"></i>
                     <?= e($_SESSION['username'] ?? '') ?>
@@ -69,6 +77,8 @@
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="/assets/js/app.js"></script>
+<!-- Chart.js chargé conditionnellement (lazy) via app.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js" defer></script>
+<script src="/assets/js/app.js" defer></script>
 </body>
 </html>

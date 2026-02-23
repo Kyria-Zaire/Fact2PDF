@@ -37,3 +37,15 @@ INSERT INTO `invoice_items` (`invoice_id`, `position`, `description`, `quantity`
 (3, 0, 'Audit sécurité',                 3.00,  250.00,  750.00),
 (4, 0, 'Développement application mobile', 10.00, 150.00, 1500.00),
 (4, 1, 'Formation équipe',               2.00,  250.00,  500.00);
+
+-- ---- Projets de test ----
+INSERT INTO `projects` (`client_id`, `invoice_id`, `name`, `description`, `status`, `priority`, `start_date`, `end_date`, `timeline`, `created_by`) VALUES
+(1, 1, 'Refonte Site Web Acme', 'Modernisation complète du site corporate', 'in_progress', 'high', '2026-01-05', '2026-03-31',
+ '[{"label":"Audit existant","date":"2026-01-05","done":true},{"label":"Maquettes Figma","date":"2026-01-20","done":true},{"label":"Développement","date":"2026-02-01","done":false},{"label":"Recette","date":"2026-03-15","done":false},{"label":"Mise en prod","date":"2026-03-31","done":false}]',
+ 1),
+(2, 3, 'Audit Sécurité Infra', 'Pentest + rapport de sécurité complet', 'review', 'critical', '2025-12-01', '2026-02-28',
+ '[{"label":"Reconnaissance","date":"2025-12-05","done":true},{"label":"Tests intrusion","date":"2025-12-20","done":true},{"label":"Rapport draft","date":"2026-01-15","done":true},{"label":"Rapport final","date":"2026-02-15","done":false}]',
+ 1),
+(3, 4, 'App Mobile StartupXYZ', 'Développement app React Native iOS/Android', 'todo', 'medium', '2026-02-10', '2026-06-30',
+ '[{"label":"Specs techniques","date":"2026-02-15","done":false},{"label":"MVP","date":"2026-04-01","done":false},{"label":"Beta test","date":"2026-05-15","done":false},{"label":"Store submission","date":"2026-06-30","done":false}]',
+ 2);

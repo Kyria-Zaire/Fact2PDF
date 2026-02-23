@@ -108,4 +108,42 @@ CREATE TABLE IF NOT EXISTS `invoice_comments` (
     CONSTRAINT `fk_comments_user`    FOREIGN KEY (`user_id`)    REFERENCES `users` (`id`)    ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- ---- Projects (Suivi de projets) ----
+CREATE TABLE IF NOT EXISTS `projects` (
+    `id`          INT UNSIGNED  NOT NULL AUTO_INCREMENT,
+    `client_id`   INT UNSIGNED  NOT NULL,
+    `invoice_id`  INT UNSIGNED  NULL       COMMENT 'Facture liée (optionnel)',
+    `name`        VARCHAR(200)  NOT NULL,
+    `description` TEXT          NULL,
+    `status`      ENUM('todo','in_progress','review','done','archived') NOT NULL DEFAULT 'todo',
+    `priority`    ENUM('low','medium','high','critical') NOT NULL DEFAULT 'medium',
+    `start_date`  DATE          NULL,
+    `end_date`    DATE          NULL,
+    `timeline`    JSON          NULL       COMMENT 'Étapes [{label, date, done}]',
+    `created_by`  INT UNSIGNED  NULL,
+    `created_at`  TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at`  TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    INDEX `idx_projects_client`  (`client_id`),
+    INDEX `idx_projects_status`  (`status`),
+    CONSTRAINT `fk_projects_client`  FOREIGN KEY (`client_id`)  REFERENCES `clients`  (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_projects_invoice` FOREIGN KEY (`invoice_id`) REFERENCES `invoices` (`id`) ON DELETE SET NULL,
+    CONSTRAINT `fk_projects_user`    FOREIGN KEY (`created_by`) REFERENCES `users`    (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ---- Notifications (polling) ----
+CREATE TABLE IF NOT EXISTS `notifications` (
+    `id`         INT UNSIGNED  NOT NULL AUTO_INCREMENT,
+    `user_id`    INT UNSIGNED  NOT NULL,
+    `type`       VARCHAR(50)   NOT NULL COMMENT 'invoice_created, project_updated, etc.',
+    `title`      VARCHAR(200)  NOT NULL,
+    `body`       TEXT          NULL,
+    `link`       VARCHAR(500)  NULL,
+    `is_read`    TINYINT(1)    NOT NULL DEFAULT 0,
+    `created_at` TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    INDEX `idx_notif_user_read` (`user_id`, `is_read`),
+    CONSTRAINT `fk_notif_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 SET FOREIGN_KEY_CHECKS = 1;
