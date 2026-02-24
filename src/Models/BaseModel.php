@@ -23,6 +23,9 @@ abstract class BaseModel
     /** @var array Colonnes autorisées en écriture (whitelist anti mass-assignment) */
     protected array $fillable = [];
 
+    /** @var array Colonnes autorisées pour ORDER BY (whitelist anti injection) */
+    protected array $orderable = ['id'];
+
     protected Database $db;
 
     public function __construct()
@@ -32,9 +35,13 @@ abstract class BaseModel
 
     /**
      * Retourne tous les enregistrements.
+     *
+     * @param string $orderBy Colonne de tri (doit être dans $orderable)
+     * @param string $dir     ASC ou DESC
      */
     public function all(string $orderBy = 'id', string $dir = 'DESC'): array
     {
+        $orderBy = in_array($orderBy, $this->orderable, true) ? $orderBy : $this->primaryKey;
         $dir = strtoupper($dir) === 'ASC' ? 'ASC' : 'DESC';
         return $this->db->fetchAll(
             "SELECT * FROM `{$this->table}` ORDER BY `{$orderBy}` {$dir}"

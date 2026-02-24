@@ -307,94 +307,118 @@ function initInvoiceItems() {
 }
 
 // ============================================================
-// 6. PROJECTS — Filtre, Kanban, Drag & Drop, Timeline
+// 6. PROJECTS — Filtre, Liste/Kanban, Drag & Drop, Timeline
 // ============================================================
 
-function initProjects() {
-    // Filtre statut
-    document.getElementById('filterProjectStatus')?.addEventListener('change', function () {
-        const v = this.value;
-        document.querySelectorAll('.project-row').forEach(r =>
-            r.classList.toggle('d-none', v !== '' && r.dataset.status !== v));
-    });
+const PROJECT_VIEW_KEY = 'f2p_projectView';
 
-    // Toggle liste / kanban
+function initProjects() {
     const viewList   = document.getElementById('viewList');
     const viewKanban = document.getElementById('viewKanban');
     const btnList    = document.getElementById('btnViewList');
     const btnKanban  = document.getElementById('btnViewKanban');
 
-    btnList?.addEventListener('click', () => {
-        viewList?.classList.remove('d-none');
-        viewKanban?.classList.add('d-none');
-        btnList.classList.add('active');
-        btnKanban?.classList.remove('active');
-        localStorage.setItem('f2p_projectView', 'list');
-    });
-
-    btnKanban?.addEventListener('click', () => {
-        viewList?.classList.add('d-none');
-        viewKanban?.classList.remove('d-none');
-        btnKanban.classList.add('active');
-        btnList?.classList.remove('active');
-        updateKanbanCounts();
-        localStorage.setItem('f2p_projectView', 'kanban');
-    });
-
-    if (localStorage.getItem('f2p_projectView') === 'kanban') btnKanban?.click();
-
-    // Compteurs colonnes kanban
     function updateKanbanCounts() {
         document.querySelectorAll('.kanban-col').forEach(col => {
-            col.querySelector('.kanban-count').textContent = col.querySelectorAll('.kanban-card').length;
+            const count = col.querySelectorAll('.kanban-card').length;
+            const el = col.querySelector('.kanban-count');
+            if (el) el.textContent = count;
         });
     }
-    updateKanbanCounts();
 
-    // Drag & drop
-    let dragged = null;
+    function setListView() {
+        viewList?.classList.remove('d-none');
+        viewKanban?.classList.add('d-none');
+        btnList?.classList.add('active');
+        btnKanban?.classList.remove('active');
+        localStorage.setItem(PROJECT_VIEW_KEY, 'list');
+    }
+
+    function setKanbanView() {
+        viewList?.classList.add('d-none');
+        viewKanban?.classList.remove('d-none');
+        btnKanban?.classList.add('active');
+        btnList?.classList.remove('active');
+        updateKanbanCounts();
+        localStorage.setItem(PROJECT_VIEW_KEY, 'kanban');
+    }
+
+    // Filtre par statut (vue Liste)
+    document.getElementById('filterProjectStatus')?.addEventListener('change', function () {
+        const status = this.value;
+        document.querySelectorAll('.project-row').forEach(row => {
+            const match = status === '' || row.dataset.status === status;
+            row.classList.toggle('d-none', !match);
+        });
+    });
+
+    // Toggle Liste / Kanban
+    btnList?.addEventListener('click', setListView);
+    btnKanban?.addEventListener('click', setKanbanView);
+    if (localStorage.getItem(PROJECT_VIEW_KEY) === 'kanban') {
+        setKanbanView();
+    } else {
+        updateKanbanCounts();
+    }
+
+    // Kanban : drag & drop
+    let draggedCard = null;
     document.querySelectorAll('.kanban-card').forEach(card => {
-        card.addEventListener('dragstart', e => { dragged = card; card.style.opacity = '.4'; e.dataTransfer.effectAllowed = 'move'; });
-        card.addEventListener('dragend',   () => { card.style.opacity = ''; dragged = null; });
+        card.addEventListener('dragstart', e => {
+            draggedCard = card;
+            card.style.opacity = '0.4';
+            e.dataTransfer.effectAllowed = 'move';
+        });
+        card.addEventListener('dragend', () => {
+            card.style.opacity = '';
+            draggedCard = null;
+        });
     });
 
     document.querySelectorAll('.kanban-cards').forEach(zone => {
-        zone.addEventListener('dragover',  e => { e.preventDefault(); zone.classList.add('kanban-drag-over'); });
+        zone.addEventListener('dragover', e => {
+            e.preventDefault();
+            zone.classList.add('kanban-drag-over');
+        });
         zone.addEventListener('dragleave', () => zone.classList.remove('kanban-drag-over'));
         zone.addEventListener('drop', async e => {
             e.preventDefault();
             zone.classList.remove('kanban-drag-over');
-            if (!dragged) return;
+            if (!draggedCard) return;
 
-            const newStatus = zone.closest('.kanban-col').dataset.status;
-            const oldStatus = dragged.dataset.status;
-            if (newStatus === oldStatus) return;
+            const col = zone.closest('.kanban-col');
+            const newStatus = col?.dataset.status;
+            const oldStatus = draggedCard.dataset.status;
+            if (!newStatus || newStatus === oldStatus) return;
 
-            zone.appendChild(dragged);
-            dragged.dataset.status = newStatus;
+            zone.appendChild(draggedCard);
+            draggedCard.dataset.status = newStatus;
             updateKanbanCounts();
 
             try {
-                await Api.patch(`/projects/${dragged.dataset.id}`, { status: newStatus });
+                await Api.post(`/projects/${draggedCard.dataset.id}/status`, { status: newStatus });
                 Toast.show('Statut mis à jour.', 'success');
             } catch {
                 Toast.show('Erreur mise à jour statut.', 'error');
-                dragged.dataset.status = oldStatus;
+                draggedCard.dataset.status = oldStatus;
             }
         });
     });
 
-    // Delete
+    // Suppression projet (formulaire caché)
     document.querySelectorAll('.btn-delete-project').forEach(btn => {
         btn.addEventListener('click', () => {
-            if (!confirm(`Supprimer « ${btn.dataset.name} » ?`)) return;
-            const f = document.getElementById('formDeleteProject');
-            f.action = `/projects/${btn.dataset.id}/delete`;
-            f.submit();
+            const name = btn.dataset.name ?? 'ce projet';
+            if (!confirm(`Supprimer « ${name} » ?`)) return;
+            const form = document.getElementById('formDeleteProject');
+            if (form) {
+                form.action = `/projects/${btn.dataset.id}/delete`;
+                form.submit();
+            }
         });
     });
 
-    // Timeline checkboxes
+    // Timeline (page détail projet)
     const debouncedSave = debounce(saveTimeline, 600);
     document.querySelectorAll('.timeline-step-check').forEach(cb => {
         cb.addEventListener('change', debouncedSave);
@@ -426,41 +450,111 @@ async function saveTimeline() {
 }
 
 // ============================================================
-// 7. NOTIFICATIONS — Polling 30s
+// 7. NOTIFICATIONS — Polling 30s, dropdown liste, marquer lu
 // ============================================================
 
 function initNotifications() {
-    const badge = document.getElementById('notifBadge');
-    if (!badge) return;
+    const badgeDesktop = document.getElementById('notifBadge');
+    const badgeMobile  = document.getElementById('notifBadgeMobile');
+    const badges      = [badgeDesktop, badgeMobile].filter(Boolean);
+    if (badges.length === 0) return;
 
-    let last = 0;
+    let lastCount = 0;
+
+    function updateBadges(count) {
+        const text = count > 9 ? '9+' : String(count);
+        badges.forEach(b => {
+            b.textContent = text;
+            b.classList.toggle('d-none', count === 0);
+        });
+    }
+
+    async function fetchNotifications() {
+        try {
+            const data = await Api.get('/notifications/poll');
+            const count = data.count || 0;
+            const items = data.items || [];
+            updateBadges(count);
+            lastCount = count;
+            return { count, items };
+        } catch {
+            return { count: 0, items: [] };
+        }
+    }
+
+    function formatNotifDate(createdAt) {
+        if (!createdAt) return '';
+        const d = new Date(createdAt);
+        const now = new Date();
+        const diff = (now - d) / 60000;
+        if (diff < 1) return 'À l\'instant';
+        if (diff < 60) return `Il y a ${Math.floor(diff)} min`;
+        if (diff < 1440) return `Il y a ${Math.floor(diff / 60)} h`;
+        return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+    }
+
+    function renderNotifList(items) {
+        if (items.length === 0) {
+            return '<p class="mb-0 text-muted">Aucune notification.</p>';
+        }
+        return items.map(n => {
+            const title = escapeHtml(n.title || '');
+            const body  = n.body ? '<div class="text-muted mt-1">' + escapeHtml(n.body) + '</div>' : '';
+            const date  = formatNotifDate(n.created_at);
+            const href  = n.link ? ` href="${escapeHtml(n.link)}"` : '';
+            const tag   = n.link ? 'a' : 'div';
+            const cls   = n.link ? 'dropdown-item py-2 notif-item' : 'dropdown-item py-2 notif-item text-decoration-none';
+            return `<${tag} class="${cls}" data-id="${escapeHtml(String(n.id))}"${href}><strong>${title}</strong>${body}<div class="small text-muted mt-1">${date}</div></${tag}>`;
+        }).join('');
+    }
+
+    function escapeHtml(s) {
+        const div = document.createElement('div');
+        div.textContent = s;
+        return div.innerHTML;
+    }
+
+    async function fillDropdownBodies() {
+        const { items } = await fetchNotifications();
+        const html = renderNotifList(items);
+        document.querySelectorAll('.notif-dropdown-body').forEach(el => { el.innerHTML = html; });
+    }
 
     async function poll() {
         try {
-            const data  = await Api.get('/notifications/poll');
+            const data = await Api.get('/notifications/poll');
             const count = data.count || 0;
-
-            badge.textContent = count > 9 ? '9+' : count;
-            badge.classList.toggle('d-none', count === 0);
-
-            if (count > last && last >= 0) {
-                data.items?.slice(0, count - last).forEach(n =>
-                    Toast.show(`<strong>${n.title}</strong>${n.body ? '<br>' + n.body : ''}`, 'info', 6000)
+            updateBadges(count);
+            if (count > lastCount && lastCount >= 0) {
+                (data.items || []).slice(0, Math.max(0, count - lastCount)).forEach(n =>
+                    Toast.show(`<strong>${escapeHtml(n.title)}</strong>${n.body ? '<br>' + escapeHtml(n.body) : ''}`, 'info', 6000)
                 );
             }
-            last = count;
-        } catch { /* réseau indisponible */ }
+            lastCount = count;
+        } catch { /* réseau */ }
     }
 
     poll();
     setInterval(poll, 30_000);
 
-    document.getElementById('btnNotif')?.addEventListener('click', async () => {
-        try {
-            await Api.post('/notifications/read-all', {});
-            badge.classList.add('d-none');
-            last = 0;
-        } catch { Toast.show('Erreur notifications.', 'error'); }
+    // À l’ouverture du dropdown : charger la liste
+    document.querySelectorAll('.notif-dropdown-menu').forEach(menu => {
+        menu.closest('.dropdown')?.addEventListener('show.bs.dropdown', () => fillDropdownBodies());
+    });
+
+    // Tout marquer comme lu
+    document.querySelectorAll('.btn-notif-mark-all').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            try {
+                await Api.post('/notifications/read-all', {});
+                updateBadges(0);
+                lastCount = 0;
+                fillDropdownBodies();
+                Toast.show('Toutes les notifications sont marquées comme lues.', 'success');
+            } catch {
+                Toast.show('Erreur.', 'error');
+            }
+        });
     });
 }
 
@@ -500,6 +594,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (document.getElementById('dashData'))      initCharts();
     if (document.getElementById('clientsGrid'))   initClients();
     if (document.getElementById('invoicesTable')) initInvoices();
-    if (document.getElementById('viewList'))      initProjects();
+    if (document.getElementById('viewList')) initProjects();
     if (document.getElementById('invoice-items')) initInvoiceItems();
 });

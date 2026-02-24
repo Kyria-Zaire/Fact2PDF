@@ -18,11 +18,18 @@
             <i class="bi bi-file-earmark-pdf"></i> Fact2PDF
         </a>
         <!-- Cloche + toggler groupés sur mobile -->
-        <div class="d-flex align-items-center gap-1 d-lg-none">
-            <button class="btn btn-link nav-link text-white position-relative p-1" id="btnNotifMobile" title="Notifications">
+        <div class="d-flex align-items-center gap-1 d-lg-none dropdown">
+            <button class="btn btn-link nav-link text-white position-relative p-1 dropdown-toggle" id="btnNotifMobile" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" aria-label="Notifications">
                 <i class="bi bi-bell"></i>
                 <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none" id="notifBadgeMobile">0</span>
             </button>
+            <ul class="dropdown-menu dropdown-menu-end notif-dropdown-menu" aria-labelledby="btnNotifMobile" style="min-width:280px;max-height:70vh;overflow-y:auto">
+                <li><h6 class="dropdown-header">Notifications</h6></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><div class="notif-dropdown-body px-3 py-2 small text-muted">Chargement…</div></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><button type="button" class="dropdown-item text-center py-2 btn-notif-mark-all">Tout marquer comme lu</button></li>
+            </ul>
             <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -52,15 +59,26 @@
             </ul>
             <!-- Section utilisateur (séparée visuellement sur mobile) -->
             <div class="navbar-nav navbar-user-section align-items-lg-center">
-                <!-- Cloche desktop uniquement -->
-                <button class="btn btn-link nav-link text-white position-relative d-none d-lg-inline-flex" id="btnNotif" title="Notifications">
-                    <i class="bi bi-bell fs-5"></i>
-                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none" id="notifBadge">0</span>
-                </button>
+                <!-- Cloche desktop -->
+                <div class="dropdown">
+                    <button class="btn btn-link nav-link text-white position-relative d-none d-lg-inline-flex dropdown-toggle" id="btnNotif" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" aria-label="Notifications">
+                        <i class="bi bi-bell fs-5"></i>
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none" id="notifBadge">0</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end notif-dropdown-menu" aria-labelledby="btnNotif" style="min-width:280px;max-height:70vh;overflow-y:auto">
+                        <li><h6 class="dropdown-header">Notifications</h6></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><div class="notif-dropdown-body px-3 py-2 small text-muted">Chargement…</div></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><button type="button" class="dropdown-item text-center py-2 btn-notif-mark-all">Tout marquer comme lu</button></li>
+                    </ul>
+                </div>
                 <span class="nav-link text-white-50 pe-none">
                     <i class="bi bi-person-circle"></i>
                     <?= e($_SESSION['username'] ?? '') ?>
-                    <span class="badge bg-secondary ms-1"><?= e($_SESSION['role'] ?? '') ?></span>
+                    <?php $role = $_SESSION['role'] ?? ''; if ($role !== '' && strtolower((string)($_SESSION['username'] ?? '')) !== strtolower($role)): ?>
+                    <span class="badge bg-secondary ms-1"><?= e($role) ?></span>
+                    <?php endif; ?>
                 </span>
                 <a class="nav-link text-danger" href="/logout" title="Déconnexion">
                     <i class="bi bi-box-arrow-right"></i>

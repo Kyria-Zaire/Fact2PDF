@@ -8,6 +8,9 @@ class Client extends BaseModel
 {
     protected string $table = 'clients';
 
+    /** @var array Colonnes autorisées pour ORDER BY */
+    protected array $orderable = ['id', 'name', 'email', 'city', 'created_at'];
+
     protected array $fillable = [
         'name', 'email', 'phone', 'address', 'city', 'postal_code',
         'country', 'logo_path', 'notes', 'created_by'

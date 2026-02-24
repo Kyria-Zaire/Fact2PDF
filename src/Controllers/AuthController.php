@@ -53,7 +53,7 @@ class AuthController
         }
 
         Auth::login($user);
-        logMessage('info', "Connexion : user #{$user['id']} ({$user['email']})");
+        logMessage('info', 'Connexion : user #' . $user['id']);
         redirect('/dashboard');
     }
 

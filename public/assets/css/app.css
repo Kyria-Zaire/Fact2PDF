@@ -265,39 +265,51 @@ body {
     }
 }
 
-/* ---- Kanban ---- */
+/* ---- Projets : Kanban ---- */
+.kanban-board {
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+}
 .kanban-col {
-    min-width: 260px;
+    min-width: 280px;
     width: 280px;
     flex-shrink: 0;
 }
-
-/* Petit écran : colonnes en vertical, plus de carrousel horizontal */
-@media (max-width: 991px) {
-    .kanban-board {
-        flex-direction: column;
-        overflow-x: visible;
-        overflow-y: visible;
-        min-height: 0;
-        gap: 1rem;
-    }
-    .kanban-board .kanban-col {
-        width: 100%;
-        min-width: 0;
-        flex-shrink: 0;
-    }
+.kanban-col .card {
+    border-radius: 0.5rem;
+    overflow: hidden;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
 }
-
-@media (max-width: 575px) {
-    .kanban-board {
-        padding-left: 0;
-        padding-right: 0;
-        gap: 0.75rem;
-    }
+.kanban-col .card-header {
+    font-size: 0.875rem;
+    border-bottom: none;
 }
-
-.kanban-cards {
+.kanban-col .kanban-cards {
+    flex: 1;
+    overflow-y: auto;
     min-height: 200px;
+}
+.kanban-card {
+    border-radius: 0.4rem;
+    border: 1px solid rgba(0,0,0,.08);
+    transition: box-shadow 0.15s ease;
+}
+.kanban-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,.1);
+}
+.kanban-card .card-body {
+    cursor: grab;
+}
+.kanban-card:active {
+    cursor: grabbing;
+}
+.kanban-cards.kanban-drag-over {
+    background-color: rgba(13, 110, 253, 0.08);
+    border-radius: 0.4rem;
+    outline: 2px dashed var(--f2p-primary);
+    outline-offset: 2px;
 }
 
 /* ---- Page Projets / Factures : toolbar responsive ---- */

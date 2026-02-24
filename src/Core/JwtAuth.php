@@ -61,16 +61,33 @@ class JwtAuth
 
         [$header, $payload, $signature] = $parts;
 
+        // Vérifier l’algorithme (éviter algorithm confusion)
+        $headerJson = self::base64UrlDecode($header);
+        if ($headerJson === false) {
+            throw new RuntimeException('Token JWT malformé.');
+        }
+        $headerData = json_decode($headerJson, true);
+        if (!is_array($headerData) || ($headerData['alg'] ?? '') !== 'HS256') {
+            throw new RuntimeException('Algorithme JWT non supporté.');
+        }
+
         // Vérifier la signature
         $expectedSig = self::sign("{$header}.{$payload}");
         if (!hash_equals($expectedSig, $signature)) {
             throw new RuntimeException('Signature JWT invalide.');
         }
 
-        $data = json_decode(self::base64UrlDecode($payload), true);
+        $payloadRaw = self::base64UrlDecode($payload);
+        if ($payloadRaw === false) {
+            throw new RuntimeException('Token JWT malformé.');
+        }
+        $data = json_decode($payloadRaw, true);
+        if (!is_array($data)) {
+            throw new RuntimeException('Token JWT malformé.');
+        }
 
         // Vérifier expiration
-        if (isset($data['exp']) && $data['exp'] < time()) {
+        if (isset($data['exp']) && (int) $data['exp'] < time()) {
             throw new RuntimeException('Token JWT expiré.');
         }
 
@@ -99,8 +116,8 @@ class JwtAuth
         return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
     }
 
-    private static function base64UrlDecode(string $data): string
+    private static function base64UrlDecode(string $data): string|false
     {
-        return base64_decode(strtr($data, '-_', '+/'));
+        return base64_decode(strtr($data, '-_', '+/'), true);
     }
 }

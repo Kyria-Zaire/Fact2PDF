@@ -42,15 +42,25 @@ if (file_exists($envFile)) {
     }
 }
 
-// Headers CORS + JSON
+// Headers CORS + JSON (CORS_ORIGINS en prod pour restreindre l’origine)
+$corsOrigin = getenv('CORS_ORIGINS') ?: ($_ENV['CORS_ORIGINS'] ?? '*');
 header('Content-Type: application/json; charset=utf-8');
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
+header('Access-Control-Allow-Origin: ' . ($corsOrigin === '' ? '*' : trim(explode(',', $corsOrigin)[0])));
+header('Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS');
 header('Access-Control-Allow-Headers: Authorization, Content-Type');
 
 // Répondre aux preflight OPTIONS
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(204);
+    exit;
+}
+
+// Rate limiting global API (par IP)
+try {
+    \App\Core\RateLimiter::allowApi(\App\Core\RateLimiter::getClientIp());
+} catch (\Throwable $e) {
+    http_response_code(429);
+    echo json_encode(['success' => false, 'error' => 'Trop de requêtes.'], JSON_UNESCAPED_UNICODE);
     exit;
 }
 
@@ -73,8 +83,9 @@ try {
         'projects' => require __DIR__ . '/projects.php',
         default    => apiError(404, 'Endpoint introuvable.')
     };
-} catch (\Exception $e) {
-    apiError(500, $e->getMessage());
+} catch (\Throwable $e) {
+    $isProd = (getenv('APP_ENV') ?: $_ENV['APP_ENV'] ?? 'production') === 'production';
+    apiError(500, $isProd ? 'Erreur serveur.' : $e->getMessage());
 }
 
 // ---- Helpers API ----

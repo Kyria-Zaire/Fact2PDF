@@ -19,11 +19,15 @@ class Auth
     {
         if (session_status() === PHP_SESSION_NONE) {
             $config = require ROOT_PATH . '/config/app.php';
+            $secure = $config['session']['secure'] ?? (
+                (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+                || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https')
+            );
 
             session_set_cookie_params([
                 'lifetime' => $config['session']['lifetime'],
                 'path'     => '/',
-                'secure'   => isset($_SERVER['HTTPS']),
+                'secure'   => $secure,
                 'httponly' => true,
                 'samesite' => 'Strict',
             ]);

@@ -8,6 +8,9 @@ class User extends BaseModel
 {
     protected string $table = 'users';
 
+    /** @var array Colonnes autorisées pour ORDER BY */
+    protected array $orderable = ['id', 'username', 'email', 'created_at'];
+
     protected array $fillable = ['username', 'email', 'password_hash', 'role', 'is_active'];
 
     /**

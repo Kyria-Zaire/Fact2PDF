@@ -46,6 +46,7 @@ return [
     ['GET',  '/projects/{id}/edit',          'ProjectController@edit',          ['admin', 'user']],
     ['POST', '/projects/{id}',               'ProjectController@update',        ['admin', 'user']],
     ['POST', '/projects/{id}/delete',        'ProjectController@delete',        ['admin']],
+    ['POST', '/projects/{id}/status',        'ProjectController@updateStatus',  ['admin', 'user']],
     ['POST', '/projects/{id}/timeline',      'ProjectController@updateTimeline',['admin', 'user']],
 
     // ---- Notifications (polling) ----

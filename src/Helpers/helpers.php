@@ -40,6 +40,9 @@ function env(string $key, mixed $default = null): mixed
  */
 function view(string $view, array $data = []): void
 {
+    if (str_contains($view, '..') || str_contains($view, '\\')) {
+        throw new RuntimeException('Nom de vue invalide.');
+    }
     extract($data, EXTR_SKIP);
     $path = ROOT_PATH . '/src/Views/' . str_replace('.', '/', $view) . '.php';
 

@@ -15,6 +15,13 @@ $action = $parts[1] ?? 'login';
 
 match ([$method, $action]) {
     ['POST', 'login'] => (function () {
+        $ip = \App\Core\RateLimiter::getClientIp();
+        try {
+            \App\Core\RateLimiter::allow('auth_login', $ip);
+        } catch (\Throwable $e) {
+            apiError(429, $e->getMessage());
+        }
+
         $body     = jsonBody();
         $email    = filter_var($body['email'] ?? '', FILTER_SANITIZE_EMAIL);
         $password = $body['password'] ?? '';

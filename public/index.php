@@ -42,7 +42,7 @@ if (file_exists($envFile)) {
     }
 }
 
-// ---- Gestion des erreurs ----
+// ---- Configuration et erreurs ----
 $config = require ROOT_PATH . '/config/app.php';
 if ($config['debug']) {
     ini_set('display_errors', '1');
@@ -50,6 +50,19 @@ if ($config['debug']) {
 } else {
     ini_set('display_errors', '0');
     error_reporting(0);
+}
+
+// ---- En-têtes de sécurité et redirection HTTPS ----
+header('X-Content-Type-Options: nosniff');
+header('X-Frame-Options: SAMEORIGIN');
+header('Referrer-Policy: strict-origin-when-cross-origin');
+if (!empty($config['force_https'])) {
+    $isHttps = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+        || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
+    if (!$isHttps) {
+        header('Location: https://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . ($_SERVER['REQUEST_URI'] ?? '/'), true, 301);
+        exit;
+    }
 }
 
 // ---- Créer les dossiers de storage si besoin ----

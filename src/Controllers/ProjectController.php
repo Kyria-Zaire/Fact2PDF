@@ -108,6 +108,26 @@ class ProjectController
     }
 
     /**
+     * POST /projects/{id}/status — Met à jour le statut (Kanban drag & drop). JSON : {"status":"..."}
+     */
+    public function updateStatus(string $id): void
+    {
+        $this->findOrAbort((int) $id);
+        $body  = json_decode(file_get_contents('php://input'), true) ?? [];
+        $status = $body['status'] ?? '';
+        if (!in_array($status, Project::STATUSES, true)) {
+            http_response_code(400);
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'error' => 'Statut invalide.']);
+            exit;
+        }
+        $this->model->update((int) $id, ['status' => $status]);
+        header('Content-Type: application/json');
+        echo json_encode(['success' => true]);
+        exit;
+    }
+
+    /**
      * POST /projects/{id}/timeline — Met à jour les étapes via AJAX.
      * Attend JSON body : [{"label":"...","date":"...","done":true}, ...]
      */
