@@ -36,6 +36,27 @@ try {
         }
     }
 
+    // Sur Vercel : les variables du dashboard sont dans getenv() / $_SERVER
+    if (getenv('VERCEL') === '1') {
+        $required = ['APP_SECRET', 'DB_HOST', 'DB_NAME', 'DB_USER', 'DB_PASS'];
+        $missing = [];
+        foreach ($required as $key) {
+            $v = $_ENV[$key] ?? $_SERVER[$key] ?? getenv($key);
+            if ($v === false || $v === null || $v === '') {
+                $missing[] = $key;
+            }
+        }
+        if ($missing !== []) {
+            header('Content-Type: text/html; charset=utf-8');
+            echo '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Configuration</title></head><body>';
+            echo '<h1>Variables d\'environnement manquantes</h1>';
+            echo '<p>Sur Vercel, ajoutez ces variables dans <strong>Project Settings → Environment Variables</strong> :</p>';
+            echo '<ul><li>' . implode('</li><li>', array_map('htmlspecialchars', $missing)) . '</li></ul>';
+            echo '<p>Puis redéployez.</p></body></html>';
+            exit(0);
+        }
+    }
+
     $config = require ROOT_PATH . '/config/app.php';
     if ($config['debug']) {
         ini_set('display_errors', '1');
@@ -86,11 +107,11 @@ try {
         http_response_code(500);
         header('Content-Type: text/html; charset=utf-8');
     }
-    $debug = (getenv('VERCEL_DEBUG') === '1' || ($_ENV['APP_ENV'] ?? '') === 'development');
+    $showError = getenv('VERCEL') === '1' || getenv('VERCEL_DEBUG') === '1' || ($_ENV['APP_ENV'] ?? '') === 'development';
     echo '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Erreur</title></head><body>';
     echo '<h1>Cette page n\'est pas disponible pour le moment</h1>';
-    if ($debug) {
-        echo '<pre>' . htmlspecialchars($e->getMessage() . "\n" . $e->getFile() . ':' . $e->getLine()) . '</pre>';
+    if ($showError) {
+        echo '<pre>' . htmlspecialchars($e->getMessage() . "\n" . $e->getFile() . ':' . $e->getLine() . "\n\n" . $e->getTraceAsString()) . '</pre>';
     } else {
         echo '<p>Consultez les <strong>Runtime Logs</strong> dans le dashboard Vercel (Deployments → votre déploiement → Logs) pour le détail.</p>';
     }
