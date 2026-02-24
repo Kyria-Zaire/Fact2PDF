@@ -9,7 +9,7 @@ Ce document décrit les étapes et la checklist pour déployer Fact2PDF en **pro
 - PHP 8.3+
 - MySQL 8+ ou MariaDB
 - Composer (dépendances : TCPDF, PHPSpreadsheet, PHPMailer, Intervention/Image)
-- Serveur web (Nginx ou Apache) ou plateforme (Vercel avec @vercel/php)
+- Serveur web (Nginx ou Apache) ou plateforme (Vercel avec runtime vercel-php)
 - Accès HTTPS (certificat valide)
 
 ---
@@ -117,7 +117,26 @@ server {
 
 ---
 
-## 5. Après déploiement
+## 5. Déploiement Vercel
+
+Le projet utilise le runtime **vercel-php** (voir `vercel.json`). En serverless, le système de fichiers est en lecture seule sauf `/tmp` ; l’app configure automatiquement les sessions dans `/tmp` lorsque `VERCEL=1` est défini.
+
+Le fichier `vercel.json` définit `installCommand: composer install --no-dev` pour installer les dépendances (TCPDF, PhpSpreadsheet, etc.). Aucune autre commande de build n’est nécessaire.
+
+**Variables d’environnement obligatoires** (à définir dans *Project Settings → Environment Variables* sur Vercel) :
+
+- **APP_ENV** = `production`
+- **APP_URL** = `https://fact2-pdf.vercel.app` (ou ton domaine)
+- **APP_SECRET** = clé secrète ≥ 32 caractères
+- **DB_HOST**, **DB_NAME**, **DB_USER**, **DB_PASS** (base MySQL/MariaDB accessible depuis Internet, ex. PlanetScale, Railway, etc.)
+- **JWT_SECRET** = secret JWT ≥ 32 caractères (API mobile)
+- **FORCE_HTTPS** = `1` et **SESSION_SECURE** = `1` recommandés
+
+Sans ces variables (notamment DB_* et APP_SECRET), l’application peut renvoyer une erreur **500**. Vérifier aussi les *Runtime Logs* dans le dashboard Vercel en cas d’erreur.
+
+---
+
+## 6. Après déploiement
 
 - Tester la connexion web (login, dashboard).
 - Tester l’API (POST /api/v1/auth/login puis une requête authentifiée).
@@ -126,7 +145,7 @@ server {
 
 ---
 
-## 6. Références
+## 7. Références
 
 - **AUDIT_REPORT.md** : rapport d’audit sécurité et clean code.
 - **README.md** : installation et commandes du projet.

@@ -56,13 +56,21 @@ if (!empty($config['force_https'])) {
     }
 }
 
+// Sur Vercel (filesystem read-only sauf /tmp) : sessions dans /tmp, pas de création storage
+if (getenv('VERCEL') === '1') {
+    ini_set('session.save_path', '/tmp');
+}
 foreach (['logs', 'cache'] as $dir) {
     $path = ROOT_PATH . '/storage/' . $dir;
-    if (!is_dir($path)) mkdir($path, 0755, true);
+    if (!is_dir($path)) {
+        @mkdir($path, 0755, true);
+    }
 }
 foreach (['uploads/logos'] as $dir) {
     $path = ROOT_PATH . '/public/storage/' . $dir;
-    if (!is_dir($path)) mkdir($path, 0755, true);
+    if (!is_dir($path)) {
+        @mkdir($path, 0755, true);
+    }
 }
 
 \App\Core\Auth::startSession();
