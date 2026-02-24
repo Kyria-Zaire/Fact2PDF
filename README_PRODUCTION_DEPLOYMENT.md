@@ -132,7 +132,7 @@ Le fichier `vercel.json` définit `installCommand: composer install --no-dev` po
 - **JWT_SECRET** = secret JWT ≥ 32 caractères (API mobile)
 - **FORCE_HTTPS** = `1` et **SESSION_SECURE** = `1` recommandés
 
-Sans ces variables (notamment DB_* et APP_SECRET), l’application peut renvoyer une erreur **500**. Vérifier aussi les *Runtime Logs* dans le dashboard Vercel en cas d’erreur.
+Sans ces variables (notamment DB_* et APP_SECRET), l’application peut renvoyer une erreur **500**. En cas de 500 : ouvrir **Deployments → [votre déploiement] → Logs** (Runtime Logs) pour voir le message PHP. Vous pouvez aussi définir **VERCEL_DEBUG=1** en variable d’environnement pour afficher l’erreur directement sur la page (à retirer en production une fois le problème résolu).
 
 ---
 
